@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Attitude Survey</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .survey-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .survey-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .survey-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .survey-header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e0e0e0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .survey-content {
+            padding: 40px;
+        }
+
+        .question-card {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .question-number {
+            color: #764ba2;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-button {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 1.1rem;
+            color: #2c3e50;
+        }
+
+        .option-button:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+            transform: translateX(5px);
+        }
+
+        .option-button.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+
+        .nav-button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-button.back {
+            background: #e0e0e0;
+            color: #555;
+        }
+
+        .nav-button.back:hover {
+            background: #d0d0d0;
+        }
+
+        .nav-button.next {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .nav-button.next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-container {
+            padding: 40px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .results-title {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .archetype-badge {
+            display: inline-block;
+            padding: 20px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50px;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .archetype-description {
+            font-size: 1.2rem;
+            color: #555;
+            line-height: 1.6;
+            margin: 20px 0;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .coordinates {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .map-container {
+            width: 100%;
+            max-width: 500px;
+            height: 500px;
+            margin: 40px auto;
+            position: relative;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: linear-gradient(to right, #ffebee 0%, #e3f2fd 100%);
+        }
+
+        .map-axes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .axis-line {
+            position: absolute;
+            background: #666;
+        }
+
+        .axis-line.vertical {
+            width: 2px;
+            height: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .axis-line.horizontal {
+            height: 2px;
+            width: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .axis-label {
+            position: absolute;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        .axis-label.north { top: 10px; left: 50%; transform: translateX(-50%); }
+        .axis-label.south { bottom: 10px; left: 50%; transform: translateX(-50%); }
+        .axis-label.west { left: 10px; top: 50%; transform: translateY(-50%); }
+        .axis-label.east { right: 10px; top: 50%; transform: translateY(-50%); }
+
+        .user-dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 3px solid white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        .restart-button {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .restart-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+        }
+
+        .intro-container {
+            padding: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .intro-title {
+            font-size: 2rem;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .intro-description {
+            font-size: 1.1rem;
+            color: #555;
+            text-align: center;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .quadrant-diagram {
+            max-width: 700px;
+            margin: 0 auto 40px;
+            position: relative;
+        }
+
+        .quadrant-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+            background: #666;
+            border: 2px solid #666;
+        }
+
+        .quadrant {
+            background: white;
+            padding: 30px;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .quadrant h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .quadrant p {
+            font-size: 0.95rem;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .axis-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .axis-labels-vertical {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: absolute;
+            left: -150px;
+            top: 0;
+            height: 100%;
+            writing-mode: vertical-rl;
+            text-align: center;
+        }
+
+        .start-button {
+            display: block;
+            margin: 40px auto 0;
+            padding: 20px 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .survey-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .question-text {
+                font-size: 1.2rem;
+            }
+
+            .option-button {
+                font-size: 1rem;
+                padding: 15px;
+            }
+
+            .map-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // Firebase configuration
+        // TODO: Replace with your Firebase config from Firebase Console
+        const firebaseConfig = {
+            apiKey: "YOUR-API-KEY",
+            authDomain: "YOUR-PROJECT.firebaseapp.com",
+            projectId: "YOUR-PROJECT-ID",
+            storageBucket: "YOUR-PROJECT.appspot.com",
+            messagingSenderId: "YOUR-SENDER-ID",
+            appId: "YOUR-APP-ID"
+        };
+
+        // Initialize Firebase
+        let db = null;
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+        } catch (error) {
+            console.log("Firebase not configured yet. Data will not be saved:", error.message);
+        }
+
+        // Function to save survey results to Firebase
+        const saveToFirebase = async (surveyData) => {
+            if (!db) {
+                console.log("Firebase not initialized. Skipping data save.");
+                return;
+            }
+
+            try {
+                await db.collection('survey_responses').add({
+                    survey: 'ai-attitude',
+                    ...surveyData,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log("Survey response saved successfully!");
+            } catch (error) {
+                console.error("Error saving survey response:", error);
+            }
+        };
+
+        const questions = [
+            {
+                id: 1,
+                text: "How likely is AI to cause human extinction within the next 100 years?",
+                options: [
+                    { text: "Extremely likely - it's our biggest threat", xWeight: -2, yWeight: 0 },
+                    { text: "Somewhat likely - we should be very worried", xWeight: -1, yWeight: 0 },
+                    { text: "Uncertain - could go either way", xWeight: 0, yWeight: 0 },
+                    { text: "Unlikely - the risks are overstated", xWeight: 1, yWeight: 0 },
+                    { text: "Almost impossible - people are being ridiculous", xWeight: 2, yWeight: 0 }
+                ]
+            },
+            {
+                id: 2,
+                text: "How should AI development proceed?",
+                options: [
+                    { text: "Full speed ahead - innovation can't wait", xWeight: 0, yWeight: 2 },
+                    { text: "Fast, but with some safety checks", xWeight: 0, yWeight: 1 },
+                    { text: "Balanced approach", xWeight: 0, yWeight: 0 },
+                    { text: "Slow and careful with strong oversight", xWeight: 0, yWeight: -1 },
+                    { text: "Pause or heavily restrict development", xWeight: 0, yWeight: -2 }
+                ]
+            },
+            {
+                id: 3,
+                text: "Who should control AI development?",
+                options: [
+                    { text: "Tech companies - they know best", xWeight: 1, yWeight: 1 },
+                    { text: "A mix of companies and light government oversight", xWeight: 0.5, yWeight: 0 },
+                    { text: "Equal partnership between industry and government", xWeight: 0, yWeight: 0 },
+                    { text: "Strong government regulation and oversight", xWeight: -0.5, yWeight: -1 },
+                    { text: "International regulatory body with strict controls", xWeight: -1, yWeight: -2 }
+                ]
+            },
+            {
+                id: 4,
+                text: "AI will primarily be used for...",
+                options: [
+                    { text: "Solving humanity's greatest challenges", xWeight: 2, yWeight: 1 },
+                    { text: "Improving efficiency and quality of life", xWeight: 1, yWeight: 0 },
+                    { text: "Both helpful and harmful purposes", xWeight: 0, yWeight: 0 },
+                    { text: "Concentrating power and wealth", xWeight: -1, yWeight: 0 },
+                    { text: "Surveillance, control, and potential harm", xWeight: -2, yWeight: -1 }
+                ]
+            },
+            {
+                id: 5,
+                text: "How do you feel about AI replacing human jobs?",
+                options: [
+                    { text: "Great! It frees us for more creative work", xWeight: 2, yWeight: 1 },
+                    { text: "Positive overall, but needs transition support", xWeight: 1, yWeight: 0 },
+                    { text: "Mixed - depends on implementation", xWeight: 0, yWeight: 0 },
+                    { text: "Concerned about inequality and displacement", xWeight: -1, yWeight: -1 },
+                    { text: "Deeply worried - it threatens human dignity", xWeight: -2, yWeight: -1 }
+                ]
+            },
+            {
+                id: 6,
+                text: "Superintelligent AI (smarter than all humans) will...",
+                options: [
+                    { text: "Never happen - it's science fiction", xWeight: 2, yWeight: 0 },
+                    { text: "Happen eventually but isn't a priority concern", xWeight: 1, yWeight: 1 },
+                    { text: "Happen and we need to prepare carefully", xWeight: 0, yWeight: -1 },
+                    { text: "Happen and poses serious risks", xWeight: -1, yWeight: -1 },
+                    { text: "Happen and likely end humanity", xWeight: -2, yWeight: 0 }
+                ]
+            },
+            {
+                id: 7,
+                text: "The pace of AI development right now is...",
+                options: [
+                    { text: "Too slow - we need more investment", xWeight: 1, yWeight: 2 },
+                    { text: "About right - good progress", xWeight: 0.5, yWeight: 1 },
+                    { text: "Reasonable, but needs more safety research", xWeight: 0, yWeight: 0 },
+                    { text: "Too fast - we need to slow down", xWeight: -0.5, yWeight: -1 },
+                    { text: "Dangerously reckless - we need a pause", xWeight: -1, yWeight: -2 }
+                ]
+            },
+            {
+                id: 8,
+                text: "Open-sourcing powerful AI models should be...",
+                options: [
+                    { text: "Always done - democratize AI for all", xWeight: 1, yWeight: 2 },
+                    { text: "Generally good with minimal restrictions", xWeight: 0.5, yWeight: 1 },
+                    { text: "Case-by-case basis", xWeight: 0, yWeight: 0 },
+                    { text: "Limited for powerful models", xWeight: -0.5, yWeight: -1 },
+                    { text: "Dangerous and should be prevented", xWeight: -1, yWeight: -2 }
+                ]
+            },
+            {
+                id: 9,
+                text: "AI alignment (making sure AI does what we want) is...",
+                options: [
+                    { text: "Not a real problem - AI will be fine", xWeight: 2, yWeight: 1 },
+                    { text: "A solvable engineering challenge", xWeight: 1, yWeight: 0 },
+                    { text: "Important but we're making progress", xWeight: 0, yWeight: 0 },
+                    { text: "Extremely difficult and underinvested", xWeight: -1, yWeight: -1 },
+                    { text: "Perhaps unsolvable - existential risk", xWeight: -2, yWeight: -1 }
+                ]
+            },
+            {
+                id: 10,
+                text: "When AI does something harmful, it's primarily because...",
+                options: [
+                    { text: "Bad actors misuse the technology", xWeight: 1, yWeight: 0 },
+                    { text: "Poor implementation or testing", xWeight: 0.5, yWeight: -0.5 },
+                    { text: "Complex systems have unintended consequences", xWeight: 0, yWeight: -0.5 },
+                    { text: "Insufficient safety measures and oversight", xWeight: -1, yWeight: -1 },
+                    { text: "AI is fundamentally unpredictable and dangerous", xWeight: -2, yWeight: -1 }
+                ]
+            },
+            {
+                id: 11,
+                text: "In 20 years, AI will have...",
+                options: [
+                    { text: "Solved major global problems - new golden age", xWeight: 2, yWeight: 1 },
+                    { text: "Significantly improved most aspects of life", xWeight: 1, yWeight: 0.5 },
+                    { text: "Both helped and created new challenges", xWeight: 0, yWeight: 0 },
+                    { text: "Exacerbated inequality and created instability", xWeight: -1, yWeight: 0 },
+                    { text: "Caused catastrophic harm or extinction", xWeight: -2, yWeight: 0 }
+                ]
+            },
+            {
+                id: 12,
+                text: "Tech CEOs advocating for AI safety are...",
+                options: [
+                    { text: "Virtue signaling - just want to slow competitors", xWeight: 1, yWeight: 1 },
+                    { text: "Overcautious - stifling innovation", xWeight: 0.5, yWeight: 0.5 },
+                    { text: "Genuinely concerned and doing the right thing", xWeight: -0.5, yWeight: -1 },
+                    { text: "Not going far enough with safety measures", xWeight: -1, yWeight: -1 },
+                    { text: "Should stop development entirely", xWeight: -2, yWeight: -2 }
+                ]
+            },
+            {
+                id: 13,
+                text: "My biggest concern about AI is...",
+                options: [
+                    { text: "That we're not moving fast enough", xWeight: 2, yWeight: 2 },
+                    { text: "That regulations will stifle innovation", xWeight: 1, yWeight: 1 },
+                    { text: "Ensuring benefits are distributed fairly", xWeight: 0, yWeight: 0 },
+                    { text: "Losing human control and autonomy", xWeight: -1, yWeight: -1 },
+                    { text: "Existential catastrophe for humanity", xWeight: -2, yWeight: -1 }
+                ]
+            },
+            {
+                id: 14,
+                text: "The best metaphor for current AI development is...",
+                options: [
+                    { text: "The space race - exciting competition driving progress", xWeight: 2, yWeight: 2 },
+                    { text: "The Industrial Revolution - transformative change", xWeight: 1, yWeight: 1 },
+                    { text: "Social media - both good and bad impacts", xWeight: 0, yWeight: 0 },
+                    { text: "Nuclear weapons - powerful but dangerous", xWeight: -1, yWeight: -1 },
+                    { text: "Pandora's Box - we've unleashed something we can't control", xWeight: -2, yWeight: -1 }
+                ]
+            },
+            {
+                id: 15,
+                text: "International cooperation on AI should be...",
+                options: [
+                    { text: "Minimal - let competition drive innovation", xWeight: 1, yWeight: 2 },
+                    { text: "Limited to voluntary standards", xWeight: 0.5, yWeight: 1 },
+                    { text: "Moderate - share some research and norms", xWeight: 0, yWeight: 0 },
+                    { text: "Strong - binding international agreements", xWeight: -0.5, yWeight: -1 },
+                    { text: "Comprehensive - global governance with enforcement", xWeight: -1, yWeight: -2 }
+                ]
+            }
+        ];
+
+        function AISurvey() {
+            const [showIntro, setShowIntro] = useState(true);
+            const [currentQuestion, setCurrentQuestion] = useState(0);
+            const [answers, setAnswers] = useState({});
+            const [showResults, setShowResults] = useState(false);
+
+            const handleAnswer = (questionId, optionIndex) => {
+                setAnswers({
+                    ...answers,
+                    [questionId]: optionIndex
+                });
+            };
+
+            const goToNext = () => {
+                if (currentQuestion < questions.length - 1) {
+                    setCurrentQuestion(currentQuestion + 1);
+                } else {
+                    // Calculate results and save to Firebase
+                    const results = calculateResults();
+                    const archetype = getArchetype(results.x, results.y);
+
+                    saveToFirebase({
+                        x: results.x,
+                        y: results.y,
+                        archetype: archetype.name,
+                        answers: answers,
+                        totalQuestions: questions.length,
+                        questionsAnswered: Object.keys(answers).length
+                    });
+
+                    setShowResults(true);
+                }
+            };
+
+            const goToBack = () => {
+                if (currentQuestion > 0) {
+                    setCurrentQuestion(currentQuestion - 1);
+                }
+            };
+
+            const restart = () => {
+                setCurrentQuestion(0);
+                setAnswers({});
+                setShowResults(false);
+                setShowIntro(true);
+            };
+
+            const startSurvey = () => {
+                setShowIntro(false);
+            };
+
+            const calculateResults = () => {
+                let xTotal = 0;
+                let yTotal = 0;
+                let count = 0;
+
+                Object.keys(answers).forEach(questionId => {
+                    const question = questions.find(q => q.id === parseInt(questionId));
+                    const optionIndex = answers[questionId];
+                    const option = question.options[optionIndex];
+
+                    xTotal += option.xWeight;
+                    yTotal += option.yWeight;
+                    count++;
+                });
+
+                const xAvg = count > 0 ? xTotal / count : 0;
+                const yAvg = count > 0 ? yTotal / count : 0;
+
+                return { x: xAvg, y: yAvg };
+            };
+
+            const getArchetype = (x, y) => {
+                // x: negative = doomer, positive = boomer
+                // y: positive = accelerationist, negative = cautious
+
+                let name = "";
+                let description = "";
+
+                if (x < -0.5 && y > 0.5) {
+                    name = "😰⚡ Accelerationist Doomer";
+                    description = "You're worried about falling behind in the AI race. Your doom scenario isn't AI itself - it's losing to China or other superpowers. We need to accelerate to maintain strategic advantage. The real risk is being second.";
+                } else if (x >= -0.5 && x < 0.5 && y > 0.5) {
+                    name = "⚡ Pragmatic Accelerationist";
+                    description = "You want AI development to move quickly and believe the benefits outweigh the risks. You're somewhere between doomer and boomer, favoring speed with reasonable precautions.";
+                } else if (x >= 0.5 && y > 0.5) {
+                    name = "😎⚡ Accelerationist Boomer";
+                    description = "You're a full-on boomer accelerationist! Excited about AI's potential and think concerns are overblown. Move fast, break things, innovate. The doomers are being dramatic. Full steam ahead!";
+                } else if (x >= 0.5 && y >= -0.5 && y <= 0.5) {
+                    name = "😎 Classic Boomer";
+                    description = "You're a classic boomer - relaxed about AI development and think the doomsayers are being dramatic. AI will be fine and we'll figure it out as we go. Why all the panic?";
+                } else if (x >= 0.5 && y < -0.5) {
+                    name = "😎🛡️ Cautious Boomer";
+                    description = "You're a boomer who wants to be careful. Not convinced AI is an existential threat, but you believe we should be thoughtful. Want steady progress with proper safety measures, not panic or recklessness.";
+                } else if (x >= -0.5 && x < 0.5 && y < -0.5) {
+                    name = "🛡️ Cautious Centrist";
+                    description = "You're in the middle between doomer and boomer. You see both promise and peril in AI. Want development to continue but with strong safety measures and careful consideration of risks.";
+                } else if (x < -0.5 && y < -0.5) {
+                    name = "😰🛡️ Cautious Doomer";
+                    description = "You're a cautious doomer - deeply concerned about AI risks and believe we need to slow down, implement strong safeguards, and prioritize human values. Better safe than extinct.";
+                } else if (x < -0.5 && y >= -0.5 && y <= 0.5) {
+                    name = "😰 Classic Doomer";
+                    description = "You're a classic doomer. You believe AI poses serious existential risks to humanity. Worried about alignment problems, loss of control, and potential catastrophe. The risks are real and underappreciated.";
+                } else {
+                    name = "🤷 Balanced Observer";
+                    description = "You're right in the middle - neither doomer nor boomer. You see valid points on multiple sides. AI has both potential and risks, and you're still forming your views on the best path forward.";
+                }
+
+                return { name, description };
+            };
+
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            const question = questions[currentQuestion];
+            const selectedAnswer = answers[question.id];
+
+            if (showIntro) {
+                return (
+                    <div className="survey-container">
+                        <div className="survey-header">
+                            <h1>🤖 AI Attitude Survey</h1>
+                            <p>Discover where you stand on AI development</p>
+                        </div>
+                        <div className="intro-container">
+                            <h2 className="intro-title">Are You a Doomer or a Boomer?</h2>
+                            <p className="intro-description">
+                                This survey maps your views on AI across two key dimensions: Are you pessimistic (Doomer) or optimistic (Boomer) about AI? Do you want fast development (Accelerationist) or careful progress (Cautious)? You'll be placed into one of these four categories:
+                            </p>
+
+                            <div className="quadrant-diagram">
+                                <div className="quadrant-grid">
+                                    <div className="quadrant">
+                                        <h3>😰⚡ Accelerationist Doomer</h3>
+                                        <p>Worried about falling behind. If other superpowers dominate AI first, we're doomed. Must accelerate to stay ahead.</p>
+                                    </div>
+                                    <div className="quadrant">
+                                        <h3>😎⚡ Accelerationist Boomer</h3>
+                                        <p>Optimistic about AI and want rapid development. Think the doomers are being dramatic - let's innovate!</p>
+                                    </div>
+                                    <div className="quadrant">
+                                        <h3>😰🛡️ Cautious Doomer</h3>
+                                        <p>Deeply concerned about AI existential risks. Want to slow down and implement strong safety measures.</p>
+                                    </div>
+                                    <div className="quadrant">
+                                        <h3>😎🛡️ Cautious Boomer</h3>
+                                        <p>Think AI will be fine but want thoughtful progress. Not worried about doom scenarios, but want proper safety.</p>
+                                    </div>
+                                </div>
+                                <div className="axis-labels">
+                                    <span>😰 DOOMER</span>
+                                    <span>😎 BOOMER</span>
+                                </div>
+                            </div>
+
+                            <p style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>
+                                <strong>⚡ ACCELERATIONIST (Top)</strong> vs <strong>🛡️ CAUTIOUS (Bottom)</strong>
+                            </p>
+
+                            <button className="start-button" onClick={startSurvey}>
+                                Start Survey →
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (showResults) {
+                const { x, y } = calculateResults();
+                const archetype = getArchetype(x, y);
+
+                // Convert coordinates from -2 to 2 scale to 0-100% for positioning
+                const dotX = ((x + 2) / 4) * 100;
+                const dotY = ((2 - y) / 4) * 100; // Invert Y for screen coordinates
+
+                return (
+                    <div className="survey-container">
+                        <div className="survey-header">
+                            <h1>🤖 Your AI Attitude</h1>
+                            <p>Survey Complete!</p>
+                        </div>
+                        <div className="results-container">
+                            <div className="archetype-badge">
+                                {archetype.name}
+                            </div>
+                            <p className="archetype-description">
+                                {archetype.description}
+                            </p>
+                            <div className="coordinates">
+                                <strong>Your Position:</strong><br/>
+                                Doomer ← {x.toFixed(2)} → Boomer<br/>
+                                Cautious ← {y.toFixed(2)} → Accelerationist
+                            </div>
+
+                            <div className="map-container">
+                                <div className="map-axes">
+                                    <div className="axis-line vertical"></div>
+                                    <div className="axis-line horizontal"></div>
+                                    <div className="axis-label north">⚡ Accelerationist</div>
+                                    <div className="axis-label south">🛡️ Cautious</div>
+                                    <div className="axis-label west">😰 Doomer</div>
+                                    <div className="axis-label east">😎 Boomer</div>
+                                </div>
+                                <div
+                                    className="user-dot"
+                                    style={{
+                                        left: `${dotX}%`,
+                                        top: `${dotY}%`
+                                    }}
+                                ></div>
+                            </div>
+
+                            <button className="restart-button" onClick={restart}>
+                                Take Survey Again
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="survey-container">
+                    <div className="survey-header">
+                        <h1>🤖 AI Attitude Survey</h1>
+                        <p>Discover where you stand on AI development</p>
+                    </div>
+                    <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${progress}%` }}></div>
+                    </div>
+                    <div className="survey-content">
+                        <div className="question-card">
+                            <div className="question-number">
+                                Question {currentQuestion + 1} of {questions.length}
+                            </div>
+                            <div className="question-text">
+                                {question.text}
+                            </div>
+                            <div className="options">
+                                {question.options.map((option, index) => (
+                                    <button
+                                        key={index}
+                                        className={`option-button ${selectedAnswer === index ? 'selected' : ''}`}
+                                        onClick={() => handleAnswer(question.id, index)}
+                                    >
+                                        {option.text}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="navigation">
+                            <button
+                                className="nav-button back"
+                                onClick={goToBack}
+                                disabled={currentQuestion === 0}
+                            >
+                                ← Back
+                            </button>
+                            <button
+                                className="nav-button next"
+                                onClick={goToNext}
+                                disabled={selectedAnswer === undefined}
+                            >
+                                {currentQuestion === questions.length - 1 ? 'See Results' : 'Next →'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<AISurvey />, document.getElementById('root'));
+    </script>
+</body>
+</html>

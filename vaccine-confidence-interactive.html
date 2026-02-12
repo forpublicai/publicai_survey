@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vaccine Confidence: Interactive Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+        }
+
+        /* Navigation */
+        nav {
+            position: sticky;
+            top: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem 2rem;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6rem 2rem;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: fadeInDown 1s ease;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            animation: fadeInUp 1s ease;
+        }
+
+        .hero .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Sections */
+        section {
+            padding: 4rem 2rem;
+            animation: fadeIn 0.8s ease;
+        }
+
+        section:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 2rem;
+            border-bottom: 3px solid #764ba2;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            color: #764ba2;
+            margin: 2rem 0 1rem;
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        /* Audience Quadrants */
+        .audience-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .audience-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .audience-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .audience-card h4 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .audience-card .maxim {
+            font-style: italic;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            margin: 2rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Accordion */
+        .accordion {
+            margin: 2rem 0;
+        }
+
+        .accordion-item {
+            background: white;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .accordion-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .accordion-header:hover {
+            opacity: 0.9;
+        }
+
+        .accordion-header::after {
+            content: '▼';
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-header.active::after {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding: 0 1.5rem;
+        }
+
+        .accordion-content.active {
+            max-height: 1000px;
+            padding: 1.5rem;
+        }
+
+        /* Key Insights */
+        .insight-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin: 2rem 0;
+            border-left: 5px solid #ffd700;
+        }
+
+        .insight-box strong {
+            font-size: 1.2rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Footer */
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1.2rem;
+            }
+
+            nav ul {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+        }
+
+        /* Interactive elements */
+        .highlight {
+            background: linear-gradient(120deg, #667eea 0%, #764ba2 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+
+        ul, ol {
+            margin-left: 2rem;
+            margin-top: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .scroll-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 999;
+        }
+
+        .scroll-to-top.visible {
+            opacity: 1;
+        }
+
+        .scroll-to-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#introduction">Introduction</a></li>
+                <li><a href="#learnings">Learnings</a></li>
+                <li><a href="#audiences">Audiences</a></li>
+                <li><a href="#recommendations">Recommendations</a></li>
+            </ul>
+        </nav>
+
+        <div class="hero" id="home">
+            <h1>Vaccine Confidence</h1>
+            <p>Connecting values, media, and culture to move audiences towards higher childhood vaccination uptake</p>
+            <p class="subtitle">Harmony Labs, FrameWorks Institute, AAP</p>
+        </div>
+
+        <section id="introduction">
+            <h2>Introduction</h2>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Vaccine Confidence Is Formed Long Before the Doctor's Office</h3>
+                    <p>Decisions about childhood vaccination are rarely made in clinical settings alone. Long before a parent talks to a pediatrician, they have absorbed years of stories about health, risk, care, and responsibility from the culture around them.</p>
+                    <div class="insight-box">
+                        <strong>Key Insight:</strong>
+                        Vaccine confidence is not built in a single interaction. It accumulates over time, across culture.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Not Everyone Sees the Same Vaccine Story</h3>
+                    <p>Vaccine-related stories appear everywhere - but not in the same way for everyone. Different audiences inhabit different media ecosystems, and those ecosystems carry distinct narratives about vaccines.</p>
+                    <div class="insight-box">
+                        <strong>Key Insight:</strong>
+                        There is no single "vaccine conversation." There are many parallel ones, happening at once.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>The Same Message Can Reassure or Alienate</h3>
+                    <p>People carry cultural stories with them into every new interaction about vaccines. Past media exposure, alongside personal experiences with caregiving and healthcare, shapes how new information is interpreted.</p>
+                    <div class="insight-box">
+                        <strong>Key Insight:</strong>
+                        When communication fails, it is often not because the information is wrong, but because the cultural context is mismatched.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Culture Is Where Vaccine Confidence Is Won or Lost</h3>
+                    <p>If vaccine confidence is formed through culture across entertainment, social media, and everyday storytelling, then information alone is not enough. A cultural strategy is required to engage the values, identities, and emotional logic that shape how different people interpret health decisions.</p>
+                    <div class="insight-box">
+                        <strong>Key Insight:</strong>
+                        Meeting families in their cultural worlds, before positions harden, is no longer optional. It is the condition for rebuilding confidence.
+                    </div>
+                </div>
+            </div>
+
+            <p style="margin-top: 2rem; font-size: 1.1rem; text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 10px;">
+                <strong>FrameWorks and the American Academy of Pediatrics partnered with Harmony Labs</strong> to understand how culture, media, and values shape childhood vaccine confidence, and to identify how public health can engage families through the narratives and media they already engage with.
+            </p>
+        </section>
+
+        <section id="learnings">
+            <h2>Key Learnings</h2>
+
+            <div class="accordion">
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        A Confidence Bubble Shapes Vaccine Communication
+                        <span></span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>The audience most aligned with public-health guidance experiences vaccination as simple, straightforward, and socially agreed upon. Their confidence is reinforced by high institutional trust and by media environments that normalize vaccination as routine care.</p>
+                        <p><strong>From inside this bubble, it can be difficult to see why other parents struggle, hesitate, or ask questions.</strong> Over time, this blind spot has quietly shaped vaccine communication strategies, anchoring them in assumptions that do not hold for other audiences.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        Misreading Values Can Create Mistrust
+                        <span></span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>When parents and caregivers express hesitation, those responses can be interpreted as misinformation, ignorance, or a lack of scientific literacy.</p>
+                        <p><strong>Our data shows something different.</strong> Concerns about childhood vaccination are values-driven and predictable. That means they are addressable. When communication fails to recognize the values underneath hesitation, it can erode trust and deepen distance.</p>
+                        <p>Rebuilding confidence requires shifting from a 'right or wrong' lens to a values-based one, where concerns are treated as meaningful starting points rather than mistakes to be corrected.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        Most People Believe Vaccines Work
+                        <span></span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>The majority of Americans, across all five audiences, agree that vaccines have protected them personally.</p>
+                        <p>Confidence is strongest among <span class="highlight">Trusting the Process</span> and <span class="highlight">Caring for My People</span>, moderate but open among <span class="highlight">Checking the Details</span> and <span class="highlight">Protecting My Family</span>, and cautious among <span class="highlight">Calling My Own Shots</span>.</p>
+                        <p><strong>The overall landscape is not one of broad vaccine doubt but of different forms of confidence</strong>, each resting on its own foundation: system reliability, practical benefits, alignment with family values, transparent details, or autonomy.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        Distrust in Institutions Is Universal
+                        <span></span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>Even among the most pro-vaccine audiences, many people believe the healthcare system is influenced by profit. This institutional skepticism is one of the few attitudes shared across all five audiences.</p>
+                        <p><strong>Importantly, diminished trust in the medical system does not prevent Trusting the Process from feeling confident about vaccinating their children.</strong> This suggests that while institutional trust shapes how messages are received, rebuilding trust in the system itself is not a prerequisite for increasing vaccine confidence.</p>
+                        <p>Communication that speaks to each audience's needs and values can drive confidence even in the presence of skepticism.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        Doctors Are Trusted, But Transparency Matters
+                        <span></span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>Across all audiences, doctors and nurses are widely viewed as reliable health sources, and most people feel listened to in medical settings. But trust in expertise does not automatically mean people feel fully informed.</p>
+                        <p>Many in <span class="highlight">Checking the Details</span> and <span class="highlight">Calling My Own Shots</span>, as well as some in other groups, believe doctors often do not give parents all of the information they need to make good health decisions for their children.</p>
+                        <p><strong>The real dividing line is not trust in doctors' competence but trust in their transparency.</strong></p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        Effective Content Doesn't Look Like Public Health Messaging
+                        <span></span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>By testing found media about vaccines, we found that narrative structure mattered more than content format.</p>
+                        <p><strong>Media that produced statistically reliable positive movement consistently shared:</strong></p>
+                        <ul>
+                            <li>A clear narrative arc</li>
+                            <li>Humanized stakes and consequences</li>
+                            <li>Grounded vaccination in the lived experiences of families, children, and real-world outcomes</li>
+                        </ul>
+                        <p>By contrast, content that relied on instruction or the conventions of traditional public health messaging did not produce positive movement.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        Humor Must Be Approached With Caution
+                        <span></span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>Humor functions best as a supporting tonal choice, not as the point of the message. In content testing, jokes about vaccines, illness, or pandemics often triggered backlash across audiences.</p>
+                        <p>By contrast, a light-hearted, approachable tone—used to clarify information rather than mock concerns—helped make content feel accessible and credible, especially when humor softened delivery without minimizing stakes.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        Vaccine Content Generates Emotional Friction
+                        <span></span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>Across audiences, all vaccine-related content elicited negative emotional responses and reduced positive feelings, regardless of tone or format. This pattern persisted even among content that produced statistically significant positive movement on attitudes.</p>
+                        <p><strong>This suggests that emotional discomfort is a baseline condition of vaccine communication.</strong> Effective content does not eliminate negative emotion; it moves audiences through it.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        All Stories That Worked Were About Childhood Vaccines
+                        <span></span>
+                    </div>
+                    <div class="accordion-content">
+                        <p><strong>Good news:</strong> Videos that worked focused on childhood vaccines. Content about COVID or pandemic-related vaccines did not produce the same positive movement.</p>
+                        <p>This suggests that childhood vaccination holds distinct narrative potential separate from COVID-19 messaging, which may still carry political or pandemic-related baggage.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="audiences">
+            <h2>Audience Profiles: Five Values-Based Audiences</h2>
+
+            <p style="font-size: 1.1rem; margin-bottom: 2rem;">
+                Vaccine confidence in the U.S. is organized into five values-based audiences, each shaped by distinct beliefs, media diets, and narratives. Only one audience lives fully inside the confidence bubble - <strong>Trusting the Process</strong>. The others occupy spaces of uncertainty or resistance.
+            </p>
+
+            <div class="audience-grid">
+                <div class="audience-card">
+                    <h4>Trusting the Process</h4>
+                    <p class="maxim">"Show it's working, and I'm with you."</p>
+                    <p style="margin-top: 1rem;"><strong>Core Value:</strong> Community</p>
+                    <p><strong>Confidence Driver:</strong> System competence, evidence, equity</p>
+                </div>
+
+                <div class="audience-card">
+                    <h4>Caring for My People</h4>
+                    <p class="maxim">"If you say so and I might trust you."</p>
+                    <p style="margin-top: 1rem;"><strong>Core Value:</strong> Autonomy</p>
+                    <p><strong>Confidence Driver:</strong> Practical benefits, fairness, community</p>
+                </div>
+
+                <div class="audience-card">
+                    <h4>Protecting My Family</h4>
+                    <p class="maxim">"Guide me with respect, and I'll protect my kids with you."</p>
+                    <p style="margin-top: 1rem;"><strong>Core Value:</strong> Order</p>
+                    <p><strong>Confidence Driver:</strong> Family protection, responsibility, faith-grounded guidance</p>
+                </div>
+
+                <div class="audience-card">
+                    <h4>Checking the Details</h4>
+                    <p class="maxim">"Help me understand the details, and I can get on board."</p>
+                    <p style="margin-top: 1rem;"><strong>Core Value:</strong> Achievement</p>
+                    <p><strong>Confidence Driver:</strong> Transparent info, concrete numbers, process clarity</p>
+                </div>
+
+                <div class="audience-card">
+                    <h4>Calling My Own Shots</h4>
+                    <p class="maxim">"Respect my judgment, and I'll consider what you say."</p>
+                    <p style="margin-top: 1rem;"><strong>Core Value:</strong> Authority</p>
+                    <p><strong>Confidence Driver:</strong> Parental authority, self-direction, personal responsibility</p>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 3rem;">Where Opportunity Lies</h3>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h4 style="color: #667eea;">Primary Opportunity</h4>
+                    <p><strong>Caring for My People</strong> and <strong>Checking the Details</strong> offer the greatest potential for increasing vaccine confidence. These audiences are motivated by care and responsibility but need alignment, clarity, and reassurance rather than persuasion.</p>
+                </div>
+
+                <div class="card">
+                    <h4 style="color: #764ba2;">Secondary Opportunity</h4>
+                    <p><strong>Protecting My Family</strong> represents a secondary opportunity, where confidence can grow when information is calm, values-aligned, and practical.</p>
+                </div>
+
+                <div class="card">
+                    <h4 style="color: #f39c12;">Guardrail</h4>
+                    <p><strong>Calling My Own Shots</strong> functions as a guardrail: engagement here should focus on reducing backlash and keeping channels open, not on immediate persuasion.</p>
+                </div>
+
+                <div class="card">
+                    <h4 style="color: #27ae60;">Amplifier</h4>
+                    <p><strong>Trusting the Process</strong> serves as an amplifier—reinforcing confidence and enabling positive spillover, but not driving the strategy itself.</p>
+                </div>
+            </div>
+
+            <div class="table-container" style="margin-top: 3rem;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Audience</th>
+                            <th>Core Value</th>
+                            <th>What Drives Confidence</th>
+                            <th>Key Hesitation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Trusting the Process</strong></td>
+                            <td>Community: "All kinds of people coming together can fix the system"</td>
+                            <td>System competence, evidence, equity</td>
+                            <td>Confident in vaccines, but concerned about profit-driven institutions</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Caring for My People</strong></td>
+                            <td>Autonomy: "There's no way to succeed, so freedom is paramount"</td>
+                            <td>Practical benefits, fairness, community</td>
+                            <td>Mild ingredient concerns</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Protecting My Family</strong></td>
+                            <td>Order: "Playing by the rules is the key to success"</td>
+                            <td>Family protection, responsibility, faith-grounded guidance</td>
+                            <td>Respect, tone, ingredient worries</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Checking the Details</strong></td>
+                            <td>Achievement: "Striving to be the best is how people rise above their circumstances"</td>
+                            <td>Transparent info, concrete numbers, process clarity</td>
+                            <td>Ingredient fears; incomplete information</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Calling My Own Shots</strong></td>
+                            <td>Authority: "Strong leadership and hard work are the only solution"</td>
+                            <td>Parental authority, self-direction, personal responsibility</td>
+                            <td>Mandates; institutional tone</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="insight-box" style="margin-top: 2rem;">
+                <strong>Critical Finding:</strong>
+                Support for vaccinating "my child" does not automatically extend to vaccinating "all children." Belief in protecting one's own children is widespread, but belief in broad societal vaccination responsibility varies widely and is deeply tied to values.
+            </div>
+        </section>
+
+        <section id="recommendations">
+            <h2>Recommendations</h2>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h3>1. Tell Complete Stories, Not Messages</h3>
+                    <p>Content that produced positive movement consistently followed a clear narrative arc—with a beginning, middle, and end. Stories that showed a situation unfolding, a decision being navigated, and a concrete outcome moved audiences to bigger alignment with the narrative goal.</p>
+                    <p><strong>By contrast, content that resembled public health messaging didn't create greater confidence.</strong></p>
+                </div>
+
+                <div class="card">
+                    <h3>2. Center Real People and Real Stakes</h3>
+                    <p>Stories worked best when they were anchored in human experience rather than abstract claims. Content that showed families, caregivers, or clinicians navigating real-world situations, especially around children's health, had more positive impacts.</p>
+                    <p><strong>Stakes were most persuasive when they were practical and relational, not theoretical.</strong></p>
+                </div>
+
+                <div class="card">
+                    <h3>3. Show Vaccination Inside Everyday Life</h3>
+                    <p>Content was more engaging when vaccination appeared incidentally within familiar life moments, such as school preparation, routine checkups, travel planning, or caregiving, rather than being framed as a standalone appeal.</p>
+                    <p><strong>Placing vaccination inside everyday contexts may help audiences interpret it as a practical, routine decision</strong>, reducing its association with institutional pressure or political debate.</p>
+                </div>
+
+                <div class="card">
+                    <h3>4. Model Responsibility, Rather Than Preach Responsibility</h3>
+                    <p>Stories performed best when they showed people acting responsibly instead of being told what responsibility looks like. By depicting thoughtful, protective choices in motion, these pieces reinforced social norms without lecturing or moralizing.</p>
+                    <p><strong>Responsibility became legible through behavior</strong>, allowing audiences to see it as achievable and self-directed rather than imposed.</p>
+                </div>
+
+                <div class="card">
+                    <h3>5. Use Humor in Service of the Story, Not as the Story</h3>
+                    <p>Humor should be used carefully and in service of the story, not as the story itself. While humor can lower defenses when it supports clarity and respect, it undermines trust when it trivializes illness, heightens anxiety, or displaces children from the center of the narrative.</p>
+                    <p><strong>In emotionally charged contexts, tone should reinforce seriousness of purpose even when moments of levity are present.</strong></p>
+                </div>
+
+                <div class="card">
+                    <h3>6. Design Stories With a Clear Narrative Job</h3>
+                    <p>Stories should be designed with a clear narrative job in mind, aligned to a specific dimension of vaccine confidence. The findings show that child development, social norms, and collective benefit do not move together.</p>
+                    <p><strong>Attempting to advance all of these at once risks diluting impact or activating resistance.</strong> Greater effectiveness comes from clarity about which belief a story is intended to influence.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <h2 style="color: white; border: none; margin-bottom: 1rem;">Thank You</h2>
+            <p>A research collaboration between Harmony Labs, FrameWorks Institute, and the American Academy of Pediatrics</p>
+            <p style="margin-top: 1rem; opacity: 0.8;">Interactive report created 2025</p>
+        </footer>
+    </div>
+
+    <div class="scroll-to-top" onclick="scrollToTop()">↑</div>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Accordion functionality
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+                const isActive = content.classList.contains('active');
+
+                // Close all accordions
+                document.querySelectorAll('.accordion-content').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelectorAll('.accordion-header').forEach(item => {
+                    item.classList.remove('active');
+                });
+
+                // Open clicked accordion if it wasn't active
+                if (!isActive) {
+                    content.classList.add('active');
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        // Scroll to top button
+        const scrollButton = document.querySelector('.scroll-to-top');
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollButton.classList.add('visible');
+            } else {
+                scrollButton.classList.remove('visible');
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeIn 0.8s ease forwards';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card, .audience-card').forEach(card => {
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Global Governance Survey</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4568dc 0%, #b06ab3 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .survey-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .survey-header {
+            background: linear-gradient(135deg, #4568dc 0%, #b06ab3 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .survey-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .survey-header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e0e0e0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4568dc 0%, #b06ab3 100%);
+            transition: width 0.3s ease;
+        }
+
+        .survey-content {
+            padding: 40px;
+        }
+
+        .question-card {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .question-number {
+            color: #4568dc;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-button {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 1.1rem;
+            color: #2c3e50;
+        }
+
+        .option-button:hover {
+            border-color: #4568dc;
+            background: #f5f7ff;
+            transform: translateX(5px);
+        }
+
+        .option-button.selected {
+            border-color: #4568dc;
+            background: linear-gradient(135deg, #4568dc 0%, #b06ab3 100%);
+            color: white;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+
+        .nav-button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-button.back {
+            background: #e0e0e0;
+            color: #555;
+        }
+
+        .nav-button.back:hover {
+            background: #d0d0d0;
+        }
+
+        .nav-button.next {
+            background: linear-gradient(135deg, #4568dc 0%, #b06ab3 100%);
+            color: white;
+        }
+
+        .nav-button.next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(69, 104, 220, 0.4);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-container {
+            padding: 40px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .archetype-badge {
+            display: inline-block;
+            padding: 20px 40px;
+            background: linear-gradient(135deg, #4568dc 0%, #b06ab3 100%);
+            color: white;
+            border-radius: 50px;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(69, 104, 220, 0.3);
+        }
+
+        .archetype-description {
+            font-size: 1.2rem;
+            color: #555;
+            line-height: 1.6;
+            margin: 20px 0;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .coordinates {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .map-container {
+            width: 100%;
+            max-width: 500px;
+            height: 500px;
+            margin: 40px auto;
+            position: relative;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        }
+
+        .map-axes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .axis-line {
+            position: absolute;
+            background: #666;
+        }
+
+        .axis-line.vertical {
+            width: 2px;
+            height: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .axis-line.horizontal {
+            height: 2px;
+            width: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .axis-label {
+            position: absolute;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 5px;
+        }
+
+        .axis-label.north { top: 10px; left: 50%; transform: translateX(-50%); }
+        .axis-label.south { bottom: 10px; left: 50%; transform: translateX(-50%); }
+        .axis-label.west { left: 10px; top: 50%; transform: translateY(-50%); }
+        .axis-label.east { right: 10px; top: 50%; transform: translateY(-50%); }
+
+        .user-dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #4568dc 0%, #b06ab3 100%);
+            border: 3px solid white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 12px rgba(69, 104, 220, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        .restart-button {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #4568dc 0%, #b06ab3 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .restart-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(69, 104, 220, 0.4);
+        }
+
+        .policy-implications {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #4568dc;
+            text-align: left;
+        }
+
+        .policy-implications h4 {
+            color: #4568dc;
+            margin-bottom: 10px;
+        }
+
+        .policy-implications ul {
+            margin-left: 20px;
+            color: #555;
+        }
+
+        .policy-implications li {
+            margin-bottom: 8px;
+        }
+
+        .intro-container {
+            padding: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .intro-title {
+            font-size: 2rem;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .intro-description {
+            font-size: 1.1rem;
+            color: #555;
+            text-align: center;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .quadrant-diagram {
+            max-width: 700px;
+            margin: 0 auto 40px;
+            position: relative;
+        }
+
+        .quadrant-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+            background: #666;
+            border: 2px solid #666;
+        }
+
+        .quadrant {
+            background: white;
+            padding: 30px;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .quadrant h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #4568dc;
+        }
+
+        .quadrant p {
+            font-size: 0.95rem;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .axis-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .start-button {
+            display: block;
+            margin: 40px auto 0;
+            padding: 20px 60px;
+            background: linear-gradient(135deg, #4568dc 0%, #b06ab3 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(69, 104, 220, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .survey-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .question-text {
+                font-size: 1.2rem;
+            }
+
+            .option-button {
+                font-size: 1rem;
+                padding: 15px;
+            }
+
+            .map-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // Firebase configuration
+        // TODO: Replace with your Firebase config from Firebase Console
+        const firebaseConfig = {
+            apiKey: "YOUR-API-KEY",
+            authDomain: "YOUR-PROJECT.firebaseapp.com",
+            projectId: "YOUR-PROJECT-ID",
+            storageBucket: "YOUR-PROJECT.appspot.com",
+            messagingSenderId: "YOUR-SENDER-ID",
+            appId: "YOUR-APP-ID"
+        };
+
+        // Initialize Firebase
+        let db = null;
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+        } catch (error) {
+            console.log("Firebase not configured yet. Data will not be saved:", error.message);
+        }
+
+        // Function to save survey results to Firebase
+        const saveToFirebase = async (surveyData) => {
+            if (!db) {
+                console.log("Firebase not initialized. Skipping data save.");
+                return;
+            }
+
+            try {
+                await db.collection('survey_responses').add({
+                    survey: 'ai-global-governance',
+                    ...surveyData,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log("Survey response saved successfully!");
+            } catch (error) {
+                console.error("Error saving survey response:", error);
+            }
+        };
+
+        const questions = [
+            {
+                id: 1,
+                text: "Who should set the rules for AI development?",
+                options: [
+                    { text: "Each nation decides for itself - sovereignty first", xWeight: -2, yWeight: 0 },
+                    { text: "Nations coordinate but maintain independence", xWeight: -1, yWeight: 0.5 },
+                    { text: "Mix of national and international standards", xWeight: 0, yWeight: 0 },
+                    { text: "Strong international framework with some flexibility", xWeight: 1, yWeight: 0.5 },
+                    { text: "Unified global rules binding for all countries", xWeight: 2, yWeight: 1 }
+                ]
+            },
+            {
+                id: 2,
+                text: "The global AI race is best described as...",
+                options: [
+                    { text: "Zero-sum competition - winner takes all", xWeight: 0, yWeight: -2 },
+                    { text: "Competitive but with some cooperation on safety", xWeight: 0, yWeight: -1 },
+                    { text: "Balanced competition and collaboration", xWeight: 0, yWeight: 0 },
+                    { text: "Mostly cooperative with healthy competition", xWeight: 0, yWeight: 1 },
+                    { text: "Full cooperation - shared benefits for humanity", xWeight: 0, yWeight: 2 }
+                ]
+            },
+            {
+                id: 3,
+                text: "If China develops more advanced AI first...",
+                options: [
+                    { text: "Existential threat - we must win at all costs", xWeight: -1, yWeight: -2 },
+                    { text: "Serious concern - need to stay competitive", xWeight: -0.5, yWeight: -1 },
+                    { text: "Concerning but we should still cooperate on safety", xWeight: 0, yWeight: 0 },
+                    { text: "We should work together regardless of who's ahead", xWeight: 0.5, yWeight: 1 },
+                    { text: "AI leadership doesn't matter if it benefits humanity", xWeight: 1, yWeight: 2 }
+                ]
+            },
+            {
+                id: 4,
+                text: "AI research and breakthroughs should be...",
+                options: [
+                    { text: "Kept secret for national advantage", xWeight: -2, yWeight: -2 },
+                    { text: "Shared only with allies", xWeight: -1, yWeight: -1 },
+                    { text: "Selectively shared based on trust and safety", xWeight: 0, yWeight: 0 },
+                    { text: "Widely shared with safety protocols", xWeight: 1, yWeight: 1 },
+                    { text: "Fully open - global scientific commons", xWeight: 2, yWeight: 2 }
+                ]
+            },
+            {
+                id: 5,
+                text: "A global AI safety organization should have...",
+                options: [
+                    { text: "No binding authority - purely advisory", xWeight: -2, yWeight: -1 },
+                    { text: "Recommendations that nations can adopt", xWeight: -1, yWeight: 0 },
+                    { text: "Some enforcement for serious violations", xWeight: 0, yWeight: 0.5 },
+                    { text: "Strong enforcement powers with penalties", xWeight: 1, yWeight: 1 },
+                    { text: "Full authority to govern global AI development", xWeight: 2, yWeight: 1.5 }
+                ]
+            },
+            {
+                id: 6,
+                text: "Compute resources (GPUs, data centers) should be...",
+                options: [
+                    { text: "Controlled nationally for strategic advantage", xWeight: -2, yWeight: -1 },
+                    { text: "Primarily national with some exports", xWeight: -1, yWeight: 0 },
+                    { text: "Market-driven with some coordination", xWeight: 0, yWeight: 0 },
+                    { text: "Coordinated globally with equitable access", xWeight: 1, yWeight: 1 },
+                    { text: "Shared global infrastructure like utilities", xWeight: 2, yWeight: 2 }
+                ]
+            },
+            {
+                id: 7,
+                text: "If breakthrough AI could end poverty but was developed by an adversary...",
+                options: [
+                    { text: "Reject it - can't trust rival nations", xWeight: -2, yWeight: -2 },
+                    { text: "Be very cautious - verify independently", xWeight: -1, yWeight: -1 },
+                    { text: "Collaborate with safeguards", xWeight: 0, yWeight: 0.5 },
+                    { text: "Embrace it with international oversight", xWeight: 1, yWeight: 1 },
+                    { text: "Fully adopt it - benefits transcend politics", xWeight: 2, yWeight: 2 }
+                ]
+            },
+            {
+                id: 8,
+                text: "AI talent and researchers should be able to...",
+                options: [
+                    { text: "Work only in their home country", xWeight: -2, yWeight: -1 },
+                    { text: "Move between allied nations only", xWeight: -1, yWeight: 0 },
+                    { text: "Move freely with some restrictions", xWeight: 0, yWeight: 0.5 },
+                    { text: "Collaborate internationally without barriers", xWeight: 1, yWeight: 1 },
+                    { text: "Form truly global teams without borders", xWeight: 2, yWeight: 2 }
+                ]
+            },
+            {
+                id: 9,
+                text: "The best metaphor for AI governance is...",
+                options: [
+                    { text: "Nuclear weapons - arms race and deterrence", xWeight: -1.5, yWeight: -2 },
+                    { text: "Space race - competition with some cooperation", xWeight: -1, yWeight: -0.5 },
+                    { text: "Climate change - shared problem, mixed response", xWeight: 0, yWeight: 0 },
+                    { text: "International trade - coordinated standards", xWeight: 1, yWeight: 1 },
+                    { text: "Internet - global commons for all humanity", xWeight: 2, yWeight: 2 }
+                ]
+            },
+            {
+                id: 10,
+                text: "Benefits from AI should primarily go to...",
+                options: [
+                    { text: "The nation that develops it first", xWeight: -2, yWeight: -2 },
+                    { text: "Developing nation and its allies", xWeight: -1, yWeight: -1 },
+                    { text: "Countries based on contribution level", xWeight: 0, yWeight: 0 },
+                    { text: "Distributed fairly across developed nations", xWeight: 1, yWeight: 1 },
+                    { text: "Shared equally with all humanity", xWeight: 2, yWeight: 2 }
+                ]
+            },
+            {
+                id: 11,
+                text: "National security justifies...",
+                options: [
+                    { text: "Any measures to maintain AI superiority", xWeight: -2, yWeight: -2 },
+                    { text: "Significant restrictions on sharing and collaboration", xWeight: -1, yWeight: -1 },
+                    { text: "Some restrictions on sensitive capabilities", xWeight: 0, yWeight: 0 },
+                    { text: "Minimal restrictions - cooperation is safer", xWeight: 1, yWeight: 1 },
+                    { text: "No restrictions - openness is the best security", xWeight: 2, yWeight: 2 }
+                ]
+            },
+            {
+                id: 12,
+                text: "Smaller nations in AI governance should...",
+                options: [
+                    { text: "Accept rules set by AI superpowers", xWeight: -1, yWeight: -1 },
+                    { text: "Form regional blocks for influence", xWeight: -0.5, yWeight: 0 },
+                    { text: "Have proportional voice based on capability", xWeight: 0, yWeight: 0 },
+                    { text: "Have equal say in global frameworks", xWeight: 1, yWeight: 1 },
+                    { text: "Lead on ethics even without technical power", xWeight: 1.5, yWeight: 2 }
+                ]
+            },
+            {
+                id: 13,
+                text: "If an AI system causes harm across borders...",
+                options: [
+                    { text: "Developing nation handles it internally", xWeight: -2, yWeight: -1 },
+                    { text: "Bilateral negotiations between nations", xWeight: -1, yWeight: 0 },
+                    { text: "International arbitration when needed", xWeight: 0, yWeight: 0.5 },
+                    { text: "International court with enforcement", xWeight: 1, yWeight: 1 },
+                    { text: "Global AI safety body investigates and rules", xWeight: 2, yWeight: 2 }
+                ]
+            },
+            {
+                id: 14,
+                text: "Military AI development should be...",
+                options: [
+                    { text: "Unrestricted - national defense priority", xWeight: -2, yWeight: -2 },
+                    { text: "Limited only by national discretion", xWeight: -1, yWeight: -1 },
+                    { text: "Subject to international norms but not treaties", xWeight: 0, yWeight: 0 },
+                    { text: "Governed by binding international agreements", xWeight: 1, yWeight: 1.5 },
+                    { text: "Banned entirely through global treaty", xWeight: 2, yWeight: 2 }
+                ]
+            },
+            {
+                id: 15,
+                text: "My ideal vision for global AI governance is...",
+                options: [
+                    { text: "Nation-first competition - protect our interests", xWeight: -2, yWeight: -2 },
+                    { text: "Strategic partnerships with allied nations", xWeight: -1, yWeight: -0.5 },
+                    { text: "Practical coordination on key issues", xWeight: 0, yWeight: 0.5 },
+                    { text: "Strong multilateral cooperation and standards", xWeight: 1, yWeight: 1.5 },
+                    { text: "True global governance for shared humanity", xWeight: 2, yWeight: 2 }
+                ]
+            }
+        ];
+
+        function GlobalGovernanceSurvey() {
+            const [showIntro, setShowIntro] = useState(true);
+            const [currentQuestion, setCurrentQuestion] = useState(0);
+            const [answers, setAnswers] = useState({});
+            const [showResults, setShowResults] = useState(false);
+
+            const handleAnswer = (questionId, optionIndex) => {
+                setAnswers({
+                    ...answers,
+                    [questionId]: optionIndex
+                });
+            };
+
+            const goToNext = () => {
+                if (currentQuestion < questions.length - 1) {
+                    setCurrentQuestion(currentQuestion + 1);
+                } else {
+                    // Calculate results and save to Firebase
+                    const results = calculateResults();
+                    const archetype = getArchetype(results.x, results.y);
+
+                    saveToFirebase({
+                        x: results.x,
+                        y: results.y,
+                        archetype: archetype.name,
+                        answers: answers,
+                        totalQuestions: questions.length,
+                        questionsAnswered: Object.keys(answers).length
+                    });
+
+                    setShowResults(true);
+                }
+            };
+
+            const goToBack = () => {
+                if (currentQuestion > 0) {
+                    setCurrentQuestion(currentQuestion - 1);
+                }
+            };
+
+            const restart = () => {
+                setCurrentQuestion(0);
+                setAnswers({});
+                setShowResults(false);
+                setShowIntro(true);
+            };
+
+            const startSurvey = () => {
+                setShowIntro(false);
+            };
+
+            const calculateResults = () => {
+                let xTotal = 0;
+                let yTotal = 0;
+                let count = 0;
+
+                Object.keys(answers).forEach(questionId => {
+                    const question = questions.find(q => q.id === parseInt(questionId));
+                    const optionIndex = answers[questionId];
+                    const option = question.options[optionIndex];
+
+                    xTotal += option.xWeight;
+                    yTotal += option.yWeight;
+                    count++;
+                });
+
+                const xAvg = count > 0 ? xTotal / count : 0;
+                const yAvg = count > 0 ? yTotal / count : 0;
+
+                return { x: xAvg, y: yAvg };
+            };
+
+            const getArchetype = (x, y) => {
+                // x: negative = national sovereignty, positive = global coordination
+                // y: negative = competition, positive = cooperation
+
+                let name = "";
+                let description = "";
+                let policies = [];
+
+                if (x < -0.5 && y > 0.5) {
+                    name = "🤝 Cooperative Nationalist";
+                    description = "You value national sovereignty but believe cooperation is crucial. Nations should work together on AI while maintaining their independence and right to self-determination.";
+                    policies = [
+                        "Voluntary international cooperation frameworks",
+                        "Respect national sovereignty in AI decisions",
+                        "Share research and best practices",
+                        "Coordinate on safety without binding mandates"
+                    ];
+                } else if (x >= -0.5 && x < 0.5 && y > 0.5) {
+                    name = "🌍 Pragmatic Internationalist";
+                    description = "You balance national interests with global cooperation. You support international coordination where it makes sense, with flexibility for different national contexts.";
+                    policies = [
+                        "Strong but flexible international frameworks",
+                        "Binding agreements on major risks",
+                        "Respect for different national approaches",
+                        "Shared benefits with fair distribution"
+                    ];
+                } else if (x >= 0.5 && y > 0.5) {
+                    name = "🌐 Global Harmonizer";
+                    description = "You believe AI requires true global governance. Nations should cooperate fully under binding international frameworks to ensure AI benefits all humanity safely.";
+                    policies = [
+                        "Binding international AI treaties",
+                        "Global AI safety organization with authority",
+                        "Shared research and open collaboration",
+                        "Equitable distribution of AI benefits worldwide"
+                    ];
+                } else if (x >= 0.5 && y >= -0.5 && y <= 0.5) {
+                    name = "⚖️ Regulated Globalist";
+                    description = "You support strong international coordination with competitive elements. Global rules should create a level playing field while allowing nations to compete within bounds.";
+                    policies = [
+                        "International standards with enforcement",
+                        "Managed competition between nations",
+                        "Global coordination on safety",
+                        "Balance cooperation and competitiveness"
+                    ];
+                } else if (x >= 0.5 && y < -0.5) {
+                    name = "🏆 Competitive Globalist";
+                    description = "You want international rules but view AI as a competitive race. Global coordination should prevent chaos while allowing nations to compete for dominance.";
+                    policies = [
+                        "International rules of the road",
+                        "Competitive race within guardrails",
+                        "Strategic alliances and partnerships",
+                        "Win the race but avoid catastrophe"
+                    ];
+                } else if (x >= -0.5 && x < 0.5 && y < -0.5) {
+                    name = "⚔️ Strategic Realist";
+                    description = "You see AI as a strategic competition with some coordination. National interests come first, but you're pragmatic about working with others when beneficial.";
+                    policies = [
+                        "National interest as top priority",
+                        "Strategic partnerships with allies",
+                        "Compete to win but avoid escalation",
+                        "Selective cooperation on shared threats"
+                    ];
+                } else if (x < -0.5 && y < -0.5) {
+                    name = "🦅 National Champion";
+                    description = "You prioritize national sovereignty and competitiveness. Each nation should pursue its own AI strategy, compete freely, and protect its national interests without global constraints.";
+                    policies = [
+                        "National sovereignty in AI development",
+                        "Compete without international restrictions",
+                        "Protect national AI capabilities",
+                        "Minimal international coordination"
+                    ];
+                } else if (x < -0.5 && y >= -0.5 && y <= 0.5) {
+                    name = "🛡️ Sovereign Pragmatist";
+                    description = "You defend national sovereignty but recognize some coordination is needed. Nations should cooperate when absolutely necessary while maintaining independence.";
+                    policies = [
+                        "National control over AI policy",
+                        "Cooperation only on existential risks",
+                        "Voluntary coordination mechanisms",
+                        "Protect national decision-making authority"
+                    ];
+                } else {
+                    name = "🤔 Balanced Centrist";
+                    description = "You're in the middle on both dimensions. You see merit in both national sovereignty and global cooperation, both competition and collaboration. Context matters.";
+                    policies = [
+                        "Case-by-case approach to coordination",
+                        "Balance national and global interests",
+                        "Compete where beneficial, cooperate where necessary",
+                        "Flexible frameworks over rigid rules"
+                    ];
+                }
+
+                return { name, description, policies };
+            };
+
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            const question = questions[currentQuestion];
+            const selectedAnswer = answers[question.id];
+
+            if (showIntro) {
+                return (
+                    <div className="survey-container">
+                        <div className="survey-header">
+                            <h1>🌍 AI Global Governance Survey</h1>
+                            <p>Discover your vision for international AI cooperation</p>
+                        </div>
+                        <div className="intro-container">
+                            <h2 className="intro-title">How Should the World Govern AI?</h2>
+                            <p className="intro-description">
+                                This survey explores your views on global AI governance across two dimensions: Should nations maintain sovereignty or create global coordination? Should countries compete or cooperate? You'll be placed into one of these four quadrants:
+                            </p>
+
+                            <div className="quadrant-diagram">
+                                <div className="quadrant-grid">
+                                    <div className="quadrant">
+                                        <h3>🤝 Cooperative Nationalist</h3>
+                                        <p>Value sovereignty but believe in cooperation. Nations work together while maintaining independence.</p>
+                                    </div>
+                                    <div className="quadrant">
+                                        <h3>🌐 Global Harmonizer</h3>
+                                        <p>True global governance with binding frameworks. Full cooperation for humanity's benefit.</p>
+                                    </div>
+                                    <div className="quadrant">
+                                        <h3>🦅 National Champion</h3>
+                                        <p>Prioritize national sovereignty and competition. Each nation pursues its own strategy freely.</p>
+                                    </div>
+                                    <div className="quadrant">
+                                        <h3>🏆 Competitive Globalist</h3>
+                                        <p>International rules but view AI as competitive race. Coordinate to prevent chaos while competing.</p>
+                                    </div>
+                                </div>
+                                <div className="axis-labels">
+                                    <span>🇺🇳 National Sovereignty</span>
+                                    <span>🌍 Global Coordination</span>
+                                </div>
+                            </div>
+
+                            <p style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>
+                                <strong>🤝 Cooperation (Top)</strong> vs <strong>⚔️ Competition (Bottom)</strong>
+                            </p>
+
+                            <button className="start-button" onClick={startSurvey}>
+                                Start Survey →
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (showResults) {
+                const { x, y } = calculateResults();
+                const archetype = getArchetype(x, y);
+
+                const dotX = ((x + 2) / 4) * 100;
+                const dotY = ((2 - y) / 4) * 100;
+
+                return (
+                    <div className="survey-container">
+                        <div className="survey-header">
+                            <h1>🌍 Your Global Governance Vision</h1>
+                            <p>Survey Complete!</p>
+                        </div>
+                        <div className="results-container">
+                            <div className="archetype-badge">
+                                {archetype.name}
+                            </div>
+                            <p className="archetype-description">
+                                {archetype.description}
+                            </p>
+                            <div className="coordinates">
+                                <strong>Your Position:</strong><br/>
+                                National Sovereignty ← {x.toFixed(2)} → Global Coordination<br/>
+                                Competition ← {y.toFixed(2)} → Cooperation
+                            </div>
+
+                            <div className="policy-implications">
+                                <h4>Your Policy Priorities:</h4>
+                                <ul>
+                                    {archetype.policies.map((policy, index) => (
+                                        <li key={index}>{policy}</li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            <div className="map-container">
+                                <div className="map-axes">
+                                    <div className="axis-line vertical"></div>
+                                    <div className="axis-line horizontal"></div>
+                                    <div className="axis-label north">🤝 Cooperation</div>
+                                    <div className="axis-label south">⚔️ Competition</div>
+                                    <div className="axis-label west">🇺🇳 Sovereignty</div>
+                                    <div className="axis-label east">🌍 Global Coord</div>
+                                </div>
+                                <div
+                                    className="user-dot"
+                                    style={{
+                                        left: `${dotX}%`,
+                                        top: `${dotY}%`
+                                    }}
+                                ></div>
+                            </div>
+
+                            <button className="restart-button" onClick={restart}>
+                                Take Survey Again
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="survey-container">
+                    <div className="survey-header">
+                        <h1>🌍 AI Global Governance Survey</h1>
+                        <p>Discover your vision for international AI cooperation</p>
+                    </div>
+                    <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${progress}%` }}></div>
+                    </div>
+                    <div className="survey-content">
+                        <div className="question-card">
+                            <div className="question-number">
+                                Question {currentQuestion + 1} of {questions.length}
+                            </div>
+                            <div className="question-text">
+                                {question.text}
+                            </div>
+                            <div className="options">
+                                {question.options.map((option, index) => (
+                                    <button
+                                        key={index}
+                                        className={`option-button ${selectedAnswer === index ? 'selected' : ''}`}
+                                        onClick={() => handleAnswer(question.id, index)}
+                                    >
+                                        {option.text}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="navigation">
+                            <button
+                                className="nav-button back"
+                                onClick={goToBack}
+                                disabled={currentQuestion === 0}
+                            >
+                                ← Back
+                            </button>
+                            <button
+                                className="nav-button next"
+                                onClick={goToNext}
+                                disabled={selectedAnswer === undefined}
+                            >
+                                {currentQuestion === questions.length - 1 ? 'See Results' : 'Next →'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<GlobalGovernanceSurvey />, document.getElementById('root'));
+    </script>
+</body>
+</html>

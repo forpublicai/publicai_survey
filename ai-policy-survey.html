@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Policy Survey</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .survey-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .survey-header {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .survey-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .survey-header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e0e0e0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
+            transition: width 0.3s ease;
+        }
+
+        .survey-content {
+            padding: 40px;
+        }
+
+        .question-card {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .question-number {
+            color: #11998e;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-button {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 1.1rem;
+            color: #2c3e50;
+        }
+
+        .option-button:hover {
+            border-color: #11998e;
+            background: #f0fdf9;
+            transform: translateX(5px);
+        }
+
+        .option-button.selected {
+            border-color: #11998e;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+
+        .nav-button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-button.back {
+            background: #e0e0e0;
+            color: #555;
+        }
+
+        .nav-button.back:hover {
+            background: #d0d0d0;
+        }
+
+        .nav-button.next {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .nav-button.next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-container {
+            padding: 40px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .results-title {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .archetype-badge {
+            display: inline-block;
+            padding: 20px 40px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            border-radius: 50px;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(17, 153, 142, 0.3);
+        }
+
+        .archetype-description {
+            font-size: 1.2rem;
+            color: #555;
+            line-height: 1.6;
+            margin: 20px 0;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .coordinates {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .map-container {
+            width: 100%;
+            max-width: 500px;
+            height: 500px;
+            margin: 40px auto;
+            position: relative;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #e8f5e9 0%, #fff9c4 50%, #ffe0b2 100%);
+        }
+
+        .map-axes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .axis-line {
+            position: absolute;
+            background: #666;
+        }
+
+        .axis-line.vertical {
+            width: 2px;
+            height: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .axis-line.horizontal {
+            height: 2px;
+            width: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .axis-label {
+            position: absolute;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 5px;
+        }
+
+        .axis-label.north { top: 10px; left: 50%; transform: translateX(-50%); }
+        .axis-label.south { bottom: 10px; left: 50%; transform: translateX(-50%); }
+        .axis-label.west { left: 10px; top: 50%; transform: translateY(-50%); }
+        .axis-label.east { right: 10px; top: 50%; transform: translateY(-50%); }
+
+        .user-dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: 3px solid white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 12px rgba(17, 153, 142, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        .restart-button {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .restart-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+        }
+
+        .policy-implications {
+            background: #f0fdf9;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #11998e;
+            text-align: left;
+        }
+
+        .policy-implications h4 {
+            color: #11998e;
+            margin-bottom: 10px;
+        }
+
+        .policy-implications ul {
+            margin-left: 20px;
+            color: #555;
+        }
+
+        .policy-implications li {
+            margin-bottom: 8px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+        }
+
+        .intro-container {
+            padding: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .intro-title {
+            font-size: 2rem;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .intro-description {
+            font-size: 1.1rem;
+            color: #555;
+            text-align: center;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .quadrant-diagram {
+            max-width: 700px;
+            margin: 0 auto 40px;
+            position: relative;
+        }
+
+        .quadrant-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+            background: #666;
+            border: 2px solid #666;
+        }
+
+        .quadrant {
+            background: white;
+            padding: 30px;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .quadrant h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #11998e;
+        }
+
+        .quadrant p {
+            font-size: 0.95rem;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .axis-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .start-button {
+            display: block;
+            margin: 40px auto 0;
+            padding: 20px 60px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(17, 153, 142, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .survey-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .question-text {
+                font-size: 1.2rem;
+            }
+
+            .option-button {
+                font-size: 1rem;
+                padding: 15px;
+            }
+
+            .map-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // Firebase configuration
+        // TODO: Replace with your Firebase config from Firebase Console
+        const firebaseConfig = {
+            apiKey: "YOUR-API-KEY",
+            authDomain: "YOUR-PROJECT.firebaseapp.com",
+            projectId: "YOUR-PROJECT-ID",
+            storageBucket: "YOUR-PROJECT.appspot.com",
+            messagingSenderId: "YOUR-SENDER-ID",
+            appId: "YOUR-APP-ID"
+        };
+
+        // Initialize Firebase
+        let db = null;
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+        } catch (error) {
+            console.log("Firebase not configured yet. Data will not be saved:", error.message);
+        }
+
+        // Function to save survey results to Firebase
+        const saveToFirebase = async (surveyData) => {
+            if (!db) {
+                console.log("Firebase not initialized. Skipping data save.");
+                return;
+            }
+
+            try {
+                await db.collection('survey_responses').add({
+                    survey: 'ai-policy',
+                    ...surveyData,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log("Survey response saved successfully!");
+            } catch (error) {
+                console.error("Error saving survey response:", error);
+            }
+        };
+
+        const questions = [
+            {
+                id: 1,
+                text: "AI model weights and training code should be...",
+                options: [
+                    { text: "Fully open-source for everyone to use freely", xWeight: -2, yWeight: 0 },
+                    { text: "Open-source but with usage guidelines", xWeight: -1, yWeight: 0.5 },
+                    { text: "Selectively open based on model capabilities", xWeight: 0, yWeight: 0 },
+                    { text: "Mostly proprietary with some public APIs", xWeight: 1, yWeight: 0 },
+                    { text: "Fully proprietary and protected", xWeight: 2, yWeight: 0.5 }
+                ]
+            },
+            {
+                id: 2,
+                text: "AI infrastructure should be...",
+                options: [
+                    { text: "Public utility owned and operated by government", xWeight: 0, yWeight: 2 },
+                    { text: "Government-funded but managed by public institutions", xWeight: -0.5, yWeight: 1.5 },
+                    { text: "Public-private partnership with government oversight", xWeight: 0, yWeight: 0.5 },
+                    { text: "Primarily private with market competition", xWeight: 0.5, yWeight: -1 },
+                    { text: "Fully privatized - let companies own and control it", xWeight: 1, yWeight: -2 }
+                ]
+            },
+            {
+                id: 3,
+                text: "Access to advanced AI models should be...",
+                options: [
+                    { text: "Universal right - free and open to all", xWeight: -2, yWeight: -1 },
+                    { text: "Widely available with safety guidelines", xWeight: -1, yWeight: 0 },
+                    { text: "Licensed with training requirements", xWeight: 0, yWeight: 1 },
+                    { text: "Restricted to approved entities", xWeight: 1, yWeight: 1.5 },
+                    { text: "Highly controlled by government/corporations", xWeight: 2, yWeight: 2 }
+                ]
+            },
+            {
+                id: 4,
+                text: "Who should control the development of foundational AI models?",
+                options: [
+                    { text: "Government agencies and public institutions", xWeight: 0, yWeight: 2 },
+                    { text: "Government-funded universities and labs", xWeight: -0.5, yWeight: 1.5 },
+                    { text: "Mix of public and private entities", xWeight: 0, yWeight: 0 },
+                    { text: "Private companies with market oversight", xWeight: 1, yWeight: -1 },
+                    { text: "Whoever can build it - pure competition", xWeight: 1.5, yWeight: -2 }
+                ]
+            },
+            {
+                id: 5,
+                text: "AI research papers and methods should be...",
+                options: [
+                    { text: "Always published openly and freely", xWeight: -2, yWeight: -1 },
+                    { text: "Published with responsible disclosure delays", xWeight: -1, yWeight: 0.5 },
+                    { text: "Shared within research community only", xWeight: 0, yWeight: 0 },
+                    { text: "Kept confidential for safety reasons", xWeight: 1, yWeight: 1 },
+                    { text: "Trade secrets - proprietary information", xWeight: 2, yWeight: 0 }
+                ]
+            },
+            {
+                id: 6,
+                text: "Data used to train AI models should be...",
+                options: [
+                    { text: "Public datasets only, fully transparent", xWeight: -2, yWeight: 0 },
+                    { text: "Documented and auditable by regulators", xWeight: -0.5, yWeight: 1 },
+                    { text: "Mix of public and proprietary with disclosure", xWeight: 0, yWeight: 0.5 },
+                    { text: "Proprietary but following privacy laws", xWeight: 1, yWeight: 0 },
+                    { text: "Fully proprietary - competitive advantage", xWeight: 2, yWeight: -0.5 }
+                ]
+            },
+            {
+                id: 7,
+                text: "Competition in the AI industry should be...",
+                options: [
+                    { text: "Open collaboration, shared resources", xWeight: -2, yWeight: 0 },
+                    { text: "Competitive but with knowledge sharing", xWeight: -1, yWeight: -0.5 },
+                    { text: "Balanced competition and cooperation", xWeight: 0, yWeight: 0 },
+                    { text: "Competitive market with patents/IP", xWeight: 1.5, yWeight: -1 },
+                    { text: "Winner-take-all, protect advantages", xWeight: 2, yWeight: -1.5 }
+                ]
+            },
+            {
+                id: 8,
+                text: "The benefits of AI should primarily flow to...",
+                options: [
+                    { text: "All citizens equally as a public resource", xWeight: -1, yWeight: 2 },
+                    { text: "Society broadly through public programs", xWeight: -0.5, yWeight: 1.5 },
+                    { text: "Mix of public benefit and private profit", xWeight: 0, yWeight: 0 },
+                    { text: "Those who pay for it and build businesses", xWeight: 1, yWeight: -1 },
+                    { text: "Innovators and investors - they earned it", xWeight: 1.5, yWeight: -2 }
+                ]
+            },
+            {
+                id: 9,
+                text: "AI should be treated like...",
+                options: [
+                    { text: "Essential public infrastructure (like roads, water)", xWeight: 0, yWeight: 2 },
+                    { text: "Regulated public utility (like electricity)", xWeight: 0, yWeight: 1.5 },
+                    { text: "Telecommunications industry (mix)", xWeight: 0, yWeight: 0 },
+                    { text: "Technology sector (mostly private)", xWeight: 0.5, yWeight: -1 },
+                    { text: "Pure market good (like consumer products)", xWeight: 1, yWeight: -2 }
+                ]
+            },
+            {
+                id: 10,
+                text: "AI models that impact public policy should be...",
+                options: [
+                    { text: "Open-source and fully auditable", xWeight: -2, yWeight: 1.5 },
+                    { text: "Transparent with mandatory disclosure", xWeight: -1, yWeight: 2 },
+                    { text: "Disclosed to government auditors only", xWeight: 0.5, yWeight: 1 },
+                    { text: "Proprietary with limited disclosure", xWeight: 1.5, yWeight: 0 },
+                    { text: "Trade secrets - trust the experts", xWeight: 2, yWeight: -0.5 }
+                ]
+            },
+            {
+                id: 11,
+                text: "Major decisions about AI direction should be made by...",
+                options: [
+                    { text: "Citizens through democratic processes", xWeight: -0.5, yWeight: 2 },
+                    { text: "Elected officials and public agencies", xWeight: 0, yWeight: 1.5 },
+                    { text: "Mix of government and industry leaders", xWeight: 0, yWeight: 0 },
+                    { text: "Company executives and boards", xWeight: 1, yWeight: -1 },
+                    { text: "Founders and investors who take risks", xWeight: 1.5, yWeight: -2 }
+                ]
+            },
+            {
+                id: 12,
+                text: "Access to advanced AI capabilities is...",
+                options: [
+                    { text: "A fundamental right - free for all citizens", xWeight: -1.5, yWeight: 2 },
+                    { text: "A public service - government should provide", xWeight: -0.5, yWeight: 1.5 },
+                    { text: "Both a public good and private market", xWeight: 0, yWeight: 0 },
+                    { text: "A product - available to those who pay", xWeight: 1, yWeight: -1 },
+                    { text: "A competitive advantage - for those who can afford it", xWeight: 1.5, yWeight: -2 }
+                ]
+            },
+            {
+                id: 13,
+                text: "AI systems in critical infrastructure should be...",
+                options: [
+                    { text: "Open-source for security auditing", xWeight: -2, yWeight: 1.5 },
+                    { text: "Transparent with government oversight", xWeight: -1, yWeight: 2 },
+                    { text: "Certified by independent authorities", xWeight: 0, yWeight: 1.5 },
+                    { text: "Proprietary but meeting security standards", xWeight: 1, yWeight: 0.5 },
+                    { text: "Proprietary with minimal disclosure", xWeight: 2, yWeight: -0.5 }
+                ]
+            },
+            {
+                id: 14,
+                text: "The best way to prevent AI misuse is...",
+                options: [
+                    { text: "Open development - many eyes make all bugs shallow", xWeight: -2, yWeight: -1 },
+                    { text: "Open development with regulatory oversight", xWeight: -1, yWeight: 1 },
+                    { text: "Controlled access with licensing", xWeight: 0.5, yWeight: 1.5 },
+                    { text: "Proprietary systems with built-in safeguards", xWeight: 1.5, yWeight: 0.5 },
+                    { text: "Limited distribution to trusted parties only", xWeight: 2, yWeight: 2 }
+                ]
+            },
+            {
+                id: 15,
+                text: "Profits from AI should primarily...",
+                options: [
+                    { text: "Fund public services - citizens own AI collectively", xWeight: -0.5, yWeight: 2 },
+                    { text: "Be shared through public ownership stakes", xWeight: 0, yWeight: 1.5 },
+                    { text: "Be split between public benefit and private return", xWeight: 0, yWeight: 0 },
+                    { text: "Go to companies with some taxes for public good", xWeight: 0.5, yWeight: -1 },
+                    { text: "Belong fully to private developers and investors", xWeight: 1, yWeight: -2 }
+                ]
+            }
+        ];
+
+        function AIPolicySurvey() {
+            const [showIntro, setShowIntro] = useState(true);
+            const [currentQuestion, setCurrentQuestion] = useState(0);
+            const [answers, setAnswers] = useState({});
+            const [showResults, setShowResults] = useState(false);
+
+            const handleAnswer = (questionId, optionIndex) => {
+                setAnswers({
+                    ...answers,
+                    [questionId]: optionIndex
+                });
+            };
+
+            const goToNext = () => {
+                if (currentQuestion < questions.length - 1) {
+                    setCurrentQuestion(currentQuestion + 1);
+                } else {
+                    // Calculate results and save to Firebase
+                    const results = calculateResults();
+                    const archetype = getArchetype(results.x, results.y);
+
+                    saveToFirebase({
+                        x: results.x,
+                        y: results.y,
+                        archetype: archetype.name,
+                        answers: answers,
+                        totalQuestions: questions.length,
+                        questionsAnswered: Object.keys(answers).length
+                    });
+
+                    setShowResults(true);
+                }
+            };
+
+            const goToBack = () => {
+                if (currentQuestion > 0) {
+                    setCurrentQuestion(currentQuestion - 1);
+                }
+            };
+
+            const restart = () => {
+                setCurrentQuestion(0);
+                setAnswers({});
+                setShowResults(false);
+                setShowIntro(true);
+            };
+
+            const startSurvey = () => {
+                setShowIntro(false);
+            };
+
+            const calculateResults = () => {
+                let xTotal = 0;
+                let yTotal = 0;
+                let count = 0;
+
+                Object.keys(answers).forEach(questionId => {
+                    const question = questions.find(q => q.id === parseInt(questionId));
+                    const optionIndex = answers[questionId];
+                    const option = question.options[optionIndex];
+
+                    xTotal += option.xWeight;
+                    yTotal += option.yWeight;
+                    count++;
+                });
+
+                const xAvg = count > 0 ? xTotal / count : 0;
+                const yAvg = count > 0 ? yTotal / count : 0;
+
+                return { x: xAvg, y: yAvg };
+            };
+
+            const getArchetype = (x, y) => {
+                // x: negative = open-source, positive = closed-source
+                // y: positive = public good, negative = privatized
+
+                let name = "";
+                let description = "";
+                let policies = [];
+
+                if (x < -0.5 && y > 0.5) {
+                    name = "🏛️ Digital Commons Advocate";
+                    description = "You believe AI should be open-source and treated as public infrastructure. Like roads or libraries, AI should be owned by the public, freely accessible, and governed democratically for the common good.";
+                    policies = [
+                        "Government-funded open-source AI development",
+                        "AI as essential public infrastructure",
+                        "Universal free access to AI capabilities",
+                        "Democratic oversight and accountability"
+                    ];
+                } else if (x >= -0.5 && x < 0.5 && y > 0.5) {
+                    name = "⚖️ Public Utility Proponent";
+                    description = "You want AI treated like a public utility - essential infrastructure that serves everyone. You're flexible on whether models are open or closed, but clear that government should ensure public benefit and universal access.";
+                    policies = [
+                        "AI regulated as public utility",
+                        "Government ensures universal access",
+                        "Mix of open and proprietary with oversight",
+                        "Public benefit as primary goal"
+                    ];
+                } else if (x >= 0.5 && y > 0.5) {
+                    name = "🏢 State Strategist";
+                    description = "You believe AI is too important to be left to markets. You support government control of proprietary AI systems, prioritizing national interests and public benefit over private profit or openness.";
+                    policies = [
+                        "Government ownership of key AI systems",
+                        "Proprietary models for security/control",
+                        "AI serves national and public interest",
+                        "Strict licensing and oversight"
+                    ];
+                } else if (x >= 0.5 && y >= -0.5 && y <= 0.5) {
+                    name = "💼 Pragmatic Capitalist";
+                    description = "You support private AI development with reasonable public oversight. Companies should own their innovations, but government ensures some level of public benefit. Markets work, with light guardrails.";
+                    policies = [
+                        "Private ownership with public safeguards",
+                        "IP protections for AI companies",
+                        "Market competition drives innovation",
+                        "Government ensures basic safety/fairness"
+                    ];
+                } else if (x >= 0.5 && y < -0.5) {
+                    name = "🦅 Corporate Libertarian";
+                    description = "You believe AI should be fully privatized with minimal government involvement. Private companies should own, control, and profit from AI. Markets will allocate resources efficiently and competition will drive progress.";
+                    policies = [
+                        "Full private ownership and control",
+                        "Minimal government intervention",
+                        "Strong IP and trade secret protection",
+                        "Market competition over public programs"
+                    ];
+                } else if (x >= -0.5 && x < 0.5 && y < -0.5) {
+                    name = "🚀 Market Innovator";
+                    description = "You want AI development driven by private entrepreneurship with minimal government involvement. You're open to various models (open or closed) as long as the market decides and innovation thrives.";
+                    policies = [
+                        "Private sector leads innovation",
+                        "Market determines openness models",
+                        "Minimal government ownership or control",
+                        "Competitive ecosystem of builders"
+                    ];
+                } else if (x < -0.5 && y < -0.5) {
+                    name = "🌐 Crypto-Anarchist";
+                    description = "You believe AI should be completely open-source and decentralized, outside government control. No public ownership, no private monopolies - just distributed, permissionless innovation owned by no one and everyone.";
+                    policies = [
+                        "Mandatory open-source, no exceptions",
+                        "Decentralized development and deployment",
+                        "No government or corporate control",
+                        "Community governance only"
+                    ];
+                } else if (x < -0.5 && y >= -0.5 && y <= 0.5) {
+                    name = "🤝 Open Collaborator";
+                    description = "You champion open-source AI but are pragmatic about governance. You want transparency and community involvement, whether that's through public institutions, private collaboration, or hybrid models.";
+                    policies = [
+                        "Default to open-source development",
+                        "Flexible governance (public or private)",
+                        "Community-driven standards",
+                        "Transparency over ownership model"
+                    ];
+                } else {
+                    name = "🤔 Pragmatic Centrist";
+                    description = "You see merit in both public and private approaches, both openness and proprietary models. You believe the right answer depends on context - some AI should be public infrastructure, some should be private markets.";
+                    policies = [
+                        "Context-dependent approach",
+                        "Public-private partnerships",
+                        "Mix of open and closed models",
+                        "Balance public good and private innovation"
+                    ];
+                }
+
+                return { name, description, policies };
+            };
+
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            const question = questions[currentQuestion];
+            const selectedAnswer = answers[question.id];
+
+            if (showIntro) {
+                return (
+                    <div className="survey-container">
+                        <div className="survey-header">
+                            <h1>🏛️ AI Policy Survey</h1>
+                            <p>Discover your AI policy position</p>
+                        </div>
+                        <div className="intro-container">
+                            <h2 className="intro-title">Understanding AI Policy Positions</h2>
+                            <p className="intro-description">
+                                This survey maps your views on AI policy across two key dimensions: whether AI should be open-source or closed-source, and whether it should be a public good or privatized. You'll be placed into one of these four quadrants:
+                            </p>
+
+                            <div className="quadrant-diagram">
+                                <div className="quadrant-grid">
+                                    <div className="quadrant">
+                                        <h3>🏛️ Digital Commons</h3>
+                                        <p>Open-source AI treated as public infrastructure. Freely accessible, democratically governed for the common good.</p>
+                                    </div>
+                                    <div className="quadrant">
+                                        <h3>🏢 State Strategist</h3>
+                                        <p>Government-controlled proprietary AI. Prioritizes national interests and public benefit over private profit.</p>
+                                    </div>
+                                    <div className="quadrant">
+                                        <h3>🌐 Crypto-Anarchist</h3>
+                                        <p>Completely open-source and decentralized. No government or corporate control, just distributed innovation.</p>
+                                    </div>
+                                    <div className="quadrant">
+                                        <h3>🦅 Corporate Libertarian</h3>
+                                        <p>Fully privatized with minimal government. Private companies own, control, and profit from AI freely.</p>
+                                    </div>
+                                </div>
+                                <div className="axis-labels">
+                                    <span>🌐 Open-Source</span>
+                                    <span>🔒 Closed-Source</span>
+                                </div>
+                            </div>
+
+                            <p style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>
+                                <strong>🏛️ Public Good (Top)</strong> vs <strong>💼 Privatized (Bottom)</strong>
+                            </p>
+
+                            <button className="start-button" onClick={startSurvey}>
+                                Start Survey →
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (showResults) {
+                const { x, y } = calculateResults();
+                const archetype = getArchetype(x, y);
+
+                // Convert coordinates from -2 to 2 scale to 0-100% for positioning
+                const dotX = ((x + 2) / 4) * 100;
+                const dotY = ((2 - y) / 4) * 100; // Invert Y for screen coordinates
+
+                return (
+                    <div className="survey-container">
+                        <div className="survey-header">
+                            <h1>🏛️ Your AI Policy Position</h1>
+                            <p>Survey Complete!</p>
+                        </div>
+                        <div className="results-container">
+                            <div className="archetype-badge">
+                                {archetype.name}
+                            </div>
+                            <p className="archetype-description">
+                                {archetype.description}
+                            </p>
+                            <div className="coordinates">
+                                <strong>Your Position:</strong><br/>
+                                Open-Source ← {x.toFixed(2)} → Closed-Source<br/>
+                                Privatized ← {y.toFixed(2)} → Public Good
+                            </div>
+
+                            <div className="policy-implications">
+                                <h4>Policy Priorities:</h4>
+                                <ul>
+                                    {archetype.policies.map((policy, index) => (
+                                        <li key={index}>{policy}</li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            <div className="map-container">
+                                <div className="map-axes">
+                                    <div className="axis-line vertical"></div>
+                                    <div className="axis-line horizontal"></div>
+                                    <div className="axis-label north">🏛️ Public Good</div>
+                                    <div className="axis-label south">💼 Privatized</div>
+                                    <div className="axis-label west">🌐 Open-Source</div>
+                                    <div className="axis-label east">🔒 Closed-Source</div>
+                                </div>
+                                <div
+                                    className="user-dot"
+                                    style={{
+                                        left: `${dotX}%`,
+                                        top: `${dotY}%`
+                                    }}
+                                ></div>
+                            </div>
+
+                            <button className="restart-button" onClick={restart}>
+                                Take Survey Again
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="survey-container">
+                    <div className="survey-header">
+                        <h1>🏛️ AI Policy Survey</h1>
+                        <p>Discover your AI policy position</p>
+                    </div>
+                    <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${progress}%` }}></div>
+                    </div>
+                    <div className="survey-content">
+                        <div className="question-card">
+                            <div className="question-number">
+                                Question {currentQuestion + 1} of {questions.length}
+                            </div>
+                            <div className="question-text">
+                                {question.text}
+                            </div>
+                            <div className="options">
+                                {question.options.map((option, index) => (
+                                    <button
+                                        key={index}
+                                        className={`option-button ${selectedAnswer === index ? 'selected' : ''}`}
+                                        onClick={() => handleAnswer(question.id, index)}
+                                    >
+                                        {option.text}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="navigation">
+                            <button
+                                className="nav-button back"
+                                onClick={goToBack}
+                                disabled={currentQuestion === 0}
+                            >
+                                ← Back
+                            </button>
+                            <button
+                                className="nav-button next"
+                                onClick={goToNext}
+                                disabled={selectedAnswer === undefined}
+                            >
+                                {currentQuestion === questions.length - 1 ? 'See Results' : 'Next →'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<AIPolicySurvey />, document.getElementById('root'));
+    </script>
+</body>
+</html>
