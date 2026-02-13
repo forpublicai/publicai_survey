@@ -1014,7 +1014,11 @@
 
                                     {/* Other users' results as faint dots */}
                                     {allResults.map((result, index) => {
+                                        // Skip if this is the current user's result (within 0.01 tolerance)
                                         if (result.x !== undefined && result.y !== undefined) {
+                                            const isSameAsUser = Math.abs(result.x - results.x) < 0.01 && Math.abs(result.y - results.y) < 0.01;
+                                            if (isSameAsUser) return null;
+
                                             const otherX = ((result.x + 2) / 4) * 100;
                                             const otherY = ((2 - result.y) / 4) * 100;
                                             return (
@@ -1022,9 +1026,9 @@
                                                     key={index}
                                                     style={{
                                                         position: 'absolute',
-                                                        width: '8px',
-                                                        height: '8px',
-                                                        background: 'rgba(118, 75, 162, 0.15)',
+                                                        width: '10px',
+                                                        height: '10px',
+                                                        background: 'rgba(118, 75, 162, 0.3)',
                                                         borderRadius: '50%',
                                                         left: `${otherX}%`,
                                                         top: `${otherY}%`,
