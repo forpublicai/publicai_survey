@@ -828,9 +828,9 @@
                     count++;
                 });
 
-                // Scale by 1.5 to spread responses toward edges
-                const xAvg = count > 0 ? (xTotal / count) * 1.5 : 0;
-                const yAvg = count > 0 ? (yTotal / count) * 1.5 : 0;
+                // Scale by 2.0 to spread responses toward edges
+                const xAvg = count > 0 ? (xTotal / count) * 2.0 : 0;
+                const yAvg = count > 0 ? (yTotal / count) * 2.0 : 0;
 
                 return { x: xAvg, y: yAvg };
             };
