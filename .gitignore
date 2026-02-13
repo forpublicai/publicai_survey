@@ -1,2 +1,18 @@
 .DS_Store
 .claude/
+
+# Environment variables and API keys
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# YouTube transcript outputs
+transcripts_*.json

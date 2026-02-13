@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Perspectives Survey</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .survey-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .survey-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .survey-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .survey-header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e0e0e0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .survey-content {
+            padding: 40px;
+        }
+
+        .question-card {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .question-number {
+            color: #764ba2;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-button {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 1.05rem;
+        }
+
+        .option-button:hover {
+            border-color: #764ba2;
+            background: #f8f9ff;
+            transform: translateX(5px);
+        }
+
+        .option-button.selected {
+            border-color: #764ba2;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 500;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        .nav-button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-button.back {
+            background: #e0e0e0;
+            color: #555;
+        }
+
+        .nav-button.back:hover {
+            background: #d0d0d0;
+        }
+
+        .nav-button.next {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .nav-button.next:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.3);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .intro-container {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .intro-title {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .intro-description {
+            font-size: 1.1rem;
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .dimensions-info {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .dimensions-info h3 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .dimension-item {
+            margin-bottom: 15px;
+        }
+
+        .dimension-item strong {
+            color: #764ba2;
+        }
+
+        .start-button {
+            display: inline-block;
+            padding: 18px 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .start-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(118, 75, 162, 0.4);
+        }
+
+        .results-container {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .results-title {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .archetype-name {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .archetype-description {
+            font-size: 1.2rem;
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .coordinates {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 30px 0;
+        }
+
+        .coordinates h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .coordinate {
+            font-size: 1.1rem;
+            color: #555;
+            margin: 10px 0;
+        }
+
+        .compass-container {
+            max-width: 400px;
+            margin: 40px auto;
+            position: relative;
+        }
+
+        .compass-diagram {
+            width: 100%;
+            aspect-ratio: 1;
+            background: linear-gradient(to right, #e3f2fd 0%, #fff 50%, #fce4ec 100%);
+            border-radius: 50%;
+            position: relative;
+            border: 3px solid #764ba2;
+        }
+
+        .compass-line-h, .compass-line-v {
+            position: absolute;
+            background: #764ba2;
+        }
+
+        .compass-line-h {
+            width: 100%;
+            height: 2px;
+            top: 50%;
+            left: 0;
+        }
+
+        .compass-line-v {
+            width: 2px;
+            height: 100%;
+            left: 50%;
+            top: 0;
+        }
+
+        .compass-dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #764ba2;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px rgba(118, 75, 162, 0.6);
+            z-index: 10;
+        }
+
+        .compass-label {
+            position: absolute;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .compass-label.north { top: -30px; left: 50%; transform: translateX(-50%); }
+        .compass-label.south { bottom: -30px; left: 50%; transform: translateX(-50%); }
+        .compass-label.east { right: -50px; top: 50%; transform: translateY(-50%); }
+        .compass-label.west { left: -50px; top: 50%; transform: translateY(-50%); }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .action-button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-button.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .action-button.secondary {
+            background: white;
+            color: #764ba2;
+            border: 2px solid #764ba2;
+        }
+
+        .action-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .persona-reveal {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            color: white;
+        }
+
+        .persona-reveal h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .persona-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .persona-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .persona-item strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .survey-header h1 {
+                font-size: 2rem;
+            }
+
+            .question-text {
+                font-size: 1.2rem;
+            }
+
+            .option-button {
+                font-size: 0.95rem;
+            }
+
+            .compass-container {
+                max-width: 300px;
+            }
+
+            .compass-label.east { right: -40px; font-size: 0.8rem; }
+            .compass-label.west { left: -40px; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEiz3xCZDdI83vJwdH1OJC7Gr_ACrpzZM",
+            authDomain: "publicaisurvey.firebaseapp.com",
+            projectId: "publicaisurvey",
+            storageBucket: "publicaisurvey.firebasestorage.app",
+            messagingSenderId: "707074147676",
+            appId: "1:707074147676:web:ca45c8e92c8ec0f0c50c16",
+            measurementId: "G-4FQYY56ZYN"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // Save function
+        const saveToFirebase = async (data) => {
+            try {
+                await db.collection('ai_perspectives_survey').add({
+                    ...data,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log('Response saved to Firebase');
+            } catch (error) {
+                console.error('Error saving to Firebase:', error);
+            }
+        };
+
+        const questions = [
+            // Attitude Questions (7)
+            {
+                id: 1,
+                text: "How likely is AI to cause human extinction within the next 100 years?",
+                options: [
+                    { text: "Extremely likely - it's our biggest threat", xWeight: -2, yWeight: 0 },
+                    { text: "Somewhat likely - we should be very worried", xWeight: -1, yWeight: 0 },
+                    { text: "Uncertain - could go either way", xWeight: 0, yWeight: 0 },
+                    { text: "Unlikely - the risks are overstated", xWeight: 1, yWeight: 0 },
+                    { text: "Almost impossible - people are being ridiculous", xWeight: 2, yWeight: 0 }
+                ]
+            },
+            {
+                id: 2,
+                text: "How should AI development proceed?",
+                options: [
+                    { text: "Full speed ahead - innovation can't wait", xWeight: 0, yWeight: 2 },
+                    { text: "Fast, but with some safety checks", xWeight: 0, yWeight: 1 },
+                    { text: "Balanced approach", xWeight: 0, yWeight: 0 },
+                    { text: "Slow and careful with strong oversight", xWeight: 0, yWeight: -1 },
+                    { text: "Pause or heavily restrict development", xWeight: 0, yWeight: -2 }
+                ]
+            },
+            {
+                id: 3,
+                text: "AI will primarily be used for...",
+                options: [
+                    { text: "Solving humanity's greatest challenges", xWeight: 2, yWeight: 1 },
+                    { text: "Improving efficiency and quality of life", xWeight: 1, yWeight: 0 },
+                    { text: "Both helpful and harmful purposes", xWeight: 0, yWeight: 0 },
+                    { text: "Concentrating power and wealth", xWeight: -1, yWeight: 0 },
+                    { text: "Surveillance, control, and potential harm", xWeight: -2, yWeight: -1 }
+                ]
+            },
+            {
+                id: 4,
+                text: "Superintelligent AI (smarter than all humans) will...",
+                options: [
+                    { text: "Never happen - it's science fiction", xWeight: 2, yWeight: 0 },
+                    { text: "Happen eventually but isn't a priority concern", xWeight: 1, yWeight: 1 },
+                    { text: "Happen and we need to prepare carefully", xWeight: 0, yWeight: -1 },
+                    { text: "Happen and poses serious risks", xWeight: -1, yWeight: -1 },
+                    { text: "Happen and likely end humanity", xWeight: -2, yWeight: 0 }
+                ]
+            },
+            {
+                id: 5,
+                text: "The pace of AI development right now is...",
+                options: [
+                    { text: "Too slow - we need more investment", xWeight: 1, yWeight: 2 },
+                    { text: "About right - good progress", xWeight: 0.5, yWeight: 1 },
+                    { text: "Reasonable, but needs more safety research", xWeight: 0, yWeight: 0 },
+                    { text: "Too fast - we need to slow down", xWeight: -0.5, yWeight: -1 },
+                    { text: "Dangerously reckless - we need a pause", xWeight: -1, yWeight: -2 }
+                ]
+            },
+            {
+                id: 6,
+                text: "In 20 years, AI will have...",
+                options: [
+                    { text: "Solved major global problems - new golden age", xWeight: 2, yWeight: 1 },
+                    { text: "Significantly improved most aspects of life", xWeight: 1, yWeight: 0.5 },
+                    { text: "Both helped and created new challenges", xWeight: 0, yWeight: 0 },
+                    { text: "Exacerbated inequality and created instability", xWeight: -1, yWeight: 0 },
+                    { text: "Caused catastrophic harm or extinction", xWeight: -2, yWeight: 0 }
+                ]
+            },
+            {
+                id: 7,
+                text: "My biggest concern about AI is...",
+                options: [
+                    { text: "That we're not moving fast enough", xWeight: 2, yWeight: 2 },
+                    { text: "That regulations will stifle innovation", xWeight: 1, yWeight: 1 },
+                    { text: "Ensuring benefits are distributed fairly", xWeight: 0, yWeight: 0 },
+                    { text: "Losing human control and autonomy", xWeight: -1, yWeight: -1 },
+                    { text: "Existential catastrophe for humanity", xWeight: -2, yWeight: -1 }
+                ]
+            },
+            // Policy Questions (6)
+            {
+                id: 8,
+                text: "AI model weights and training code should be...",
+                options: [
+                    { text: "Fully open-source for everyone to use freely", xWeight: -2, yWeight: 0 },
+                    { text: "Open-source but with usage guidelines", xWeight: -1, yWeight: 0.5 },
+                    { text: "Selectively open based on model capabilities", xWeight: 0, yWeight: 0 },
+                    { text: "Mostly proprietary with some public APIs", xWeight: 1, yWeight: 0 },
+                    { text: "Fully proprietary and protected", xWeight: 2, yWeight: 0.5 }
+                ]
+            },
+            {
+                id: 9,
+                text: "AI infrastructure should be...",
+                options: [
+                    { text: "Public utility owned and operated by government", xWeight: 0, yWeight: 2 },
+                    { text: "Government-funded but managed by public institutions", xWeight: -0.5, yWeight: 1.5 },
+                    { text: "Public-private partnership with government oversight", xWeight: 0, yWeight: 0.5 },
+                    { text: "Primarily private with market competition", xWeight: 0.5, yWeight: -1 },
+                    { text: "Fully privatized - let companies own and control it", xWeight: 1, yWeight: -2 }
+                ]
+            },
+            {
+                id: 10,
+                text: "Access to advanced AI models should be...",
+                options: [
+                    { text: "Universal right - free and open to all", xWeight: -2, yWeight: -1 },
+                    { text: "Widely available with safety guidelines", xWeight: -1, yWeight: 0 },
+                    { text: "Licensed with training requirements", xWeight: 0, yWeight: 1 },
+                    { text: "Restricted to approved entities", xWeight: 1, yWeight: 1.5 },
+                    { text: "Highly controlled by government/corporations", xWeight: 2, yWeight: 2 }
+                ]
+            },
+            {
+                id: 11,
+                text: "The benefits of AI should primarily flow to...",
+                options: [
+                    { text: "All citizens equally as a public resource", xWeight: -1, yWeight: 2 },
+                    { text: "Society broadly through public programs", xWeight: -0.5, yWeight: 1.5 },
+                    { text: "Mix of public benefit and private profit", xWeight: 0, yWeight: 0 },
+                    { text: "Those who pay for it and build businesses", xWeight: 1, yWeight: -1 },
+                    { text: "Innovators and investors - they earned it", xWeight: 1.5, yWeight: -2 }
+                ]
+            },
+            {
+                id: 12,
+                text: "AI should be treated like...",
+                options: [
+                    { text: "Essential public infrastructure (like roads, water)", xWeight: 0, yWeight: 2 },
+                    { text: "Regulated public utility (like electricity)", xWeight: 0, yWeight: 1.5 },
+                    { text: "Telecommunications industry (mix)", xWeight: 0, yWeight: 0 },
+                    { text: "Technology sector (mostly private)", xWeight: 0.5, yWeight: -1 },
+                    { text: "Pure market good (like consumer products)", xWeight: 1, yWeight: -2 }
+                ]
+            },
+            {
+                id: 13,
+                text: "Major decisions about AI direction should be made by...",
+                options: [
+                    { text: "Citizens through democratic processes", xWeight: -0.5, yWeight: 2 },
+                    { text: "Elected officials and public agencies", xWeight: 0, yWeight: 1.5 },
+                    { text: "Mix of government and industry leaders", xWeight: 0, yWeight: 0 },
+                    { text: "Company executives and boards", xWeight: 1, yWeight: -1 },
+                    { text: "Founders and investors who take risks", xWeight: 1.5, yWeight: -2 }
+                ]
+            },
+            // Labor & Economics Questions (5)
+            {
+                id: 14,
+                text: "As AI automates jobs, the government should...",
+                options: [
+                    { text: "Let the market adjust naturally - creative destruction works", xWeight: -2, yWeight: 0 },
+                    { text: "Provide support during transition but let market lead", xWeight: -1, yWeight: 0 },
+                    { text: "Balance market forces with active policy interventions", xWeight: 0, yWeight: 0 },
+                    { text: "Actively manage transition with strong programs", xWeight: 1, yWeight: 0.5 },
+                    { text: "Heavily intervene to prevent job losses", xWeight: 2, yWeight: 1 }
+                ]
+            },
+            {
+                id: 15,
+                text: "The goal should be to...",
+                options: [
+                    { text: "Provide income so people don't need to work", xWeight: 0, yWeight: -2 },
+                    { text: "Focus on compensation more than work itself", xWeight: 0, yWeight: -1 },
+                    { text: "Balance income support and job creation", xWeight: 0, yWeight: 0 },
+                    { text: "Prioritize creating and preserving jobs", xWeight: 0, yWeight: 1 },
+                    { text: "Guarantee work for everyone who wants it", xWeight: 0, yWeight: 2 }
+                ]
+            },
+            {
+                id: 16,
+                text: "Universal Basic Income (UBI) is...",
+                options: [
+                    { text: "Essential - free people from work requirement", xWeight: -1, yWeight: -2 },
+                    { text: "Good solution - let people choose their path", xWeight: -0.5, yWeight: -1 },
+                    { text: "One tool among many - context dependent", xWeight: 0, yWeight: 0 },
+                    { text: "Concerning - work provides dignity and purpose", xWeight: 0.5, yWeight: 1 },
+                    { text: "Bad idea - we should preserve meaningful work", xWeight: 1, yWeight: 2 }
+                ]
+            },
+            {
+                id: 17,
+                text: "A world where fewer people work is...",
+                options: [
+                    { text: "Ideal - work is overrated, embrace leisure", xWeight: -1, yWeight: -2 },
+                    { text: "Fine - people can find meaning elsewhere", xWeight: -0.5, yWeight: -1 },
+                    { text: "Neutral - depends on implementation", xWeight: 0, yWeight: 0 },
+                    { text: "Concerning - work provides structure and purpose", xWeight: 0.5, yWeight: 1 },
+                    { text: "Dystopian - everyone deserves meaningful work", xWeight: 1, yWeight: 2 }
+                ]
+            },
+            {
+                id: 18,
+                text: "My ideal vision for AI and work is...",
+                options: [
+                    { text: "Post-work society with universal basic income", xWeight: -2, yWeight: -2 },
+                    { text: "Flexible income support, work becomes optional", xWeight: -1, yWeight: -1 },
+                    { text: "Balance of support and new job opportunities", xWeight: 0, yWeight: 0 },
+                    { text: "Government ensures everyone can find meaningful work", xWeight: 1, yWeight: 1.5 },
+                    { text: "Preserve traditional employment through regulation", xWeight: 2, yWeight: 2 }
+                ]
+            }
+        ];
+
+        function AIPerspectivesSurvey() {
+            const [showIntro, setShowIntro] = useState(true);
+            const [currentQuestion, setCurrentQuestion] = useState(0);
+            const [answers, setAnswers] = useState({});
+            const [showResults, setShowResults] = useState(false);
+
+            const handleAnswer = (questionId, optionIndex) => {
+                setAnswers({
+                    ...answers,
+                    [questionId]: optionIndex
+                });
+            };
+
+            const goToNext = () => {
+                if (currentQuestion < questions.length - 1) {
+                    setCurrentQuestion(currentQuestion + 1);
+                } else {
+                    // Calculate results and save to Firebase
+                    const results = calculateResults();
+                    const archetype = getArchetype(results.x, results.y);
+
+                    saveToFirebase({
+                        x: results.x,
+                        y: results.y,
+                        archetype: archetype.name,
+                        answers: answers,
+                        totalQuestions: questions.length,
+                        questionsAnswered: Object.keys(answers).length
+                    });
+
+                    setShowResults(true);
+                }
+            };
+
+            const goToBack = () => {
+                if (currentQuestion > 0) {
+                    setCurrentQuestion(currentQuestion - 1);
+                }
+            };
+
+            const restart = () => {
+                setCurrentQuestion(0);
+                setAnswers({});
+                setShowResults(false);
+                setShowIntro(true);
+            };
+
+            const startSurvey = () => {
+                setShowIntro(false);
+            };
+
+            const calculateResults = () => {
+                let xTotal = 0;
+                let yTotal = 0;
+                let count = 0;
+
+                Object.keys(answers).forEach(questionId => {
+                    const question = questions.find(q => q.id === parseInt(questionId));
+                    const optionIndex = answers[questionId];
+                    const option = question.options[optionIndex];
+
+                    xTotal += option.xWeight;
+                    yTotal += option.yWeight;
+                    count++;
+                });
+
+                const xAvg = count > 0 ? xTotal / count : 0;
+                const yAvg = count > 0 ? yTotal / count : 0;
+
+                return { x: xAvg, y: yAvg };
+            };
+
+            const getArchetype = (x, y) => {
+                // x: negative = open/market, positive = closed/control
+                // y: negative = cautious/preservation, positive = accelerationist/change
+
+                let name = "";
+                let description = "";
+                let direction = "";
+
+                // 8-directional compass
+                if (Math.abs(x) < 0.4 && y > 0.7) {
+                    // North
+                    name = "⚡ The Accelerationist";
+                    description = "You believe in moving fast and embracing change. Whether it's AI development, new policies, or economic transformations, you think we should push forward boldly. Progress requires speed and willingness to break from the status quo.";
+                    direction = "N";
+                } else if (x > 0.7 && y > 0.7) {
+                    // Northeast
+                    name = "🏛️⚡ The Progressive Accelerationist";
+                    description = "You want rapid AI advancement but under strong public oversight and control. You believe government should actively steer AI development toward public good while moving quickly. Fast progress through collective action and public investment.";
+                    direction = "NE";
+                } else if (x > 0.7 && Math.abs(y) < 0.4) {
+                    // East
+                    name = "🏛️ The Statist";
+                    description = "You believe AI should be publicly controlled, regulated, and directed toward collective benefit. Government oversight, public ownership, and democratic decision-making should guide AI development. Markets alone won't ensure AI serves everyone.";
+                    direction = "E";
+                } else if (x > 0.7 && y < -0.7) {
+                    // Southeast
+                    name = "🛡️🏛️ The Safety Statist";
+                    description = "You want strong government control over AI combined with a cautious, safety-first approach. Public oversight should ensure we move slowly and carefully, preserving jobs and preventing disruption. Better safe than sorry, with collective decision-making.";
+                    direction = "SE";
+                } else if (Math.abs(x) < 0.4 && y < -0.7) {
+                    // South
+                    name = "🛡️ The Safety Advocate";
+                    description = "Caution is your watchword. Whether in AI development, policy changes, or economic shifts, you believe we should move slowly and carefully. Preserve what works, protect against disruption, and prioritize safety over speed.";
+                    direction = "S";
+                } else if (x < -0.7 && y < -0.7) {
+                    // Southwest
+                    name = "🛡️💼 The Safety Libertarian";
+                    description = "You believe in free markets and individual liberty, but you're worried about the pace of AI development. Let markets work, but proceed cautiously. You're skeptical of both government control and reckless acceleration.";
+                    direction = "SW";
+                } else if (x < -0.7 && Math.abs(y) < 0.4) {
+                    // West
+                    name = "💼 The Free Marketeer";
+                    description = "You trust markets, competition, and individual choice over government control. AI should be developed by private companies, accessed by those who pay for it, and guided by market forces. Open-source where possible, private profit where earned.";
+                    direction = "W";
+                } else if (x < -0.7 && y > 0.7) {
+                    // Northwest
+                    name = "💼⚡ The Libertarian Accelerationist";
+                    description = "You combine free-market principles with rapid innovation. Move fast, break things, let markets decide. Minimal government intervention, maximum entrepreneurial freedom. The best way forward is to unleash innovation without constraints.";
+                    direction = "NW";
+                } else {
+                    // Center
+                    name = "⚖️ The Pragmatic Centrist";
+                    description = "You see merit in multiple perspectives. You want balance between markets and government, between speed and safety, between innovation and preservation. Context matters, and the best approach depends on specific circumstances.";
+                    direction = "CENTER";
+                }
+
+                return { name, description, direction };
+            };
+
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            const question = questions[currentQuestion];
+            const selectedAnswer = answers[question.id];
+
+            if (showIntro) {
+                return (
+                    <div className="survey-container">
+                        <div className="survey-header">
+                            <h1>🧭 AI Perspectives Survey</h1>
+                            <p>Discover where you stand on critical AI issues</p>
+                        </div>
+                        <div className="intro-container">
+                            <h2 className="intro-title">Map Your AI Worldview</h2>
+                            <p className="intro-description">
+                                This survey explores your views on AI development, policy, and economic impact.
+                                Answer 18 questions to discover your unique perspective and see where you fall
+                                on the AI compass - from accelerationist to cautious, from free-market to statist.
+                            </p>
+
+                            <div className="dimensions-info">
+                                <h3>Two Key Dimensions</h3>
+                                <div className="dimension-item">
+                                    <strong>Horizontal Axis:</strong> Individual/Market Freedom ↔ Collective/Government Control
+                                    <br />
+                                    <span style={{fontSize: '0.95rem', color: '#666'}}>
+                                        Should AI be driven by markets and individual choice, or by government oversight and public control?
+                                    </span>
+                                </div>
+                                <div className="dimension-item">
+                                    <strong>Vertical Axis:</strong> Cautious/Preservation ↔ Accelerationist/Change
+                                    <br />
+                                    <span style={{fontSize: '0.95rem', color: '#666'}}>
+                                        Should we move carefully and preserve the status quo, or push rapidly toward transformation?
+                                    </span>
+                                </div>
+                            </div>
+
+                            <button className="start-button" onClick={startSurvey}>
+                                Begin Survey →
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (showResults) {
+                const results = calculateResults();
+                const archetype = getArchetype(results.x, results.y);
+
+                // Convert coordinates to percentages for positioning (0,0 center = 50%,50%)
+                const dotX = ((results.x + 2) / 4) * 100; // Map -2 to 2 onto 0 to 100
+                const dotY = ((2 - results.y) / 4) * 100; // Invert Y (top is positive)
+
+                return (
+                    <div className="survey-container">
+                        <div className="survey-header">
+                            <h1>🧭 Your AI Perspective</h1>
+                            <p>Here's where you stand</p>
+                        </div>
+                        <div className="results-container">
+                            <h2 className="results-title">You are...</h2>
+                            <div className="archetype-name">{archetype.name}</div>
+                            <p className="archetype-description">{archetype.description}</p>
+
+                            <div className="compass-container">
+                                <div className="compass-diagram">
+                                    <div className="compass-line-h"></div>
+                                    <div className="compass-line-v"></div>
+                                    <div
+                                        className="compass-dot"
+                                        style={{
+                                            left: `${dotX}%`,
+                                            top: `${dotY}%`
+                                        }}
+                                    ></div>
+                                    <div className="compass-label north">Accelerationist</div>
+                                    <div className="compass-label south">Cautious</div>
+                                    <div className="compass-label east">Statist</div>
+                                    <div className="compass-label west">Market</div>
+                                </div>
+                            </div>
+
+                            <div className="coordinates">
+                                <h3>Your Coordinates</h3>
+                                <div className="coordinate">
+                                    Horizontal: {results.x.toFixed(2)} (Market {results.x < 0 ? '←' : '→'} Statist)
+                                </div>
+                                <div className="coordinate">
+                                    Vertical: {results.y.toFixed(2)} (Cautious {results.y < 0 ? '↓' : '↑'} Accelerationist)
+                                </div>
+                            </div>
+
+                            <div className="persona-reveal">
+                                <h3>🎁 All 8 Compass Directions</h3>
+                                <p style={{marginBottom: '20px', fontSize: '0.95rem'}}>
+                                    Now that you've completed the survey, here are all possible perspectives:
+                                </p>
+                                <div className="persona-grid">
+                                    <div className="persona-item">
+                                        <strong>⚡ N</strong>
+                                        Accelerationist
+                                    </div>
+                                    <div className="persona-item">
+                                        <strong>🏛️⚡ NE</strong>
+                                        Progressive Accelerationist
+                                    </div>
+                                    <div className="persona-item">
+                                        <strong>🏛️ E</strong>
+                                        Statist
+                                    </div>
+                                    <div className="persona-item">
+                                        <strong>🛡️🏛️ SE</strong>
+                                        Safety Statist
+                                    </div>
+                                    <div className="persona-item">
+                                        <strong>🛡️ S</strong>
+                                        Safety Advocate
+                                    </div>
+                                    <div className="persona-item">
+                                        <strong>🛡️💼 SW</strong>
+                                        Safety Libertarian
+                                    </div>
+                                    <div className="persona-item">
+                                        <strong>💼 W</strong>
+                                        Free Marketeer
+                                    </div>
+                                    <div className="persona-item">
+                                        <strong>💼⚡ NW</strong>
+                                        Libertarian Accelerationist
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="action-buttons">
+                                <button className="action-button primary" onClick={restart}>
+                                    Take Again
+                                </button>
+                                <button className="action-button secondary" onClick={() => window.location.href = 'index.html'}>
+                                    Back to Home
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="survey-container">
+                    <div className="survey-header">
+                        <h1>🧭 AI Perspectives Survey</h1>
+                        <p>Question {currentQuestion + 1} of {questions.length}</p>
+                    </div>
+                    <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${progress}%` }}></div>
+                    </div>
+                    <div className="survey-content">
+                        <div className="question-card">
+                            <div className="question-number">
+                                Question {currentQuestion + 1} of {questions.length}
+                            </div>
+                            <div className="question-text">{question.text}</div>
+                            <div className="options">
+                                {question.options.map((option, index) => (
+                                    <button
+                                        key={index}
+                                        className={`option-button ${selectedAnswer === index ? 'selected' : ''}`}
+                                        onClick={() => handleAnswer(question.id, index)}
+                                    >
+                                        {option.text}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="navigation-buttons">
+                                {currentQuestion > 0 && (
+                                    <button className="nav-button back" onClick={goToBack}>
+                                        ← Back
+                                    </button>
+                                )}
+                                <button
+                                    className="nav-button next"
+                                    onClick={goToNext}
+                                    disabled={selectedAnswer === undefined}
+                                >
+                                    {currentQuestion < questions.length - 1 ? 'Next →' : 'See Results →'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<AIPerspectivesSurvey />, document.getElementById('root'));
+    </script>
+</body>
+</html>

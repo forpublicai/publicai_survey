@@ -45,8 +45,8 @@
         }
 
         .surveys-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            display: flex;
+            justify-content: center;
             gap: 40px;
             margin-bottom: 60px;
         }
@@ -59,6 +59,8 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             animation: fadeIn 1s ease-in;
             cursor: pointer;
+            max-width: 700px;
+            width: 100%;
         }
 
         .survey-card:hover {
@@ -241,12 +243,13 @@
             }
 
             .surveys-grid {
-                grid-template-columns: 1fr;
+                flex-direction: column;
                 gap: 30px;
             }
 
             .survey-card {
                 padding: 30px;
+                max-width: 100%;
             }
 
             .survey-title {
@@ -258,152 +261,44 @@
 <body>
     <div class="container">
         <header>
-            <h1>AI Perspectives Survey Suite</h1>
+            <h1>AI Perspectives Survey</h1>
             <p class="subtitle">
-                Discover where you stand on critical AI issues. Take our interactive surveys to explore your views on AI safety,
-                policy, governance, and economic impact. Each survey maps your responses to distinct personas based on multiple dimensions.
+                Discover where you stand on critical AI issues. Take our comprehensive survey to explore your views on AI development,
+                policy, and economic impact. Answer 18 questions and see where you fall on the AI compass - from accelerationist to cautious, from free-market to statist.
             </p>
         </header>
 
         <div class="surveys-grid">
-            <!-- AI Attitude Survey -->
-            <div class="survey-card attitude" onclick="window.location.href='ai-attitude-survey.html'">
+            <!-- Consolidated AI Perspectives Survey -->
+            <div class="survey-card attitude" onclick="window.location.href='ai-perspectives-survey.html'">
                 <div class="survey-header">
-                    <h2 class="survey-title">AI Attitude Survey</h2>
+                    <h2 class="survey-title">🧭 AI Perspectives Survey</h2>
                     <p class="survey-description">
-                        Are you a Doomer or a Boomer? Do you want to accelerate AI development or proceed cautiously?
-                        This survey maps your fundamental attitudes about AI's impact on humanity's future.
+                        Map your complete AI worldview across safety, policy, and economics. Are you an accelerationist or cautious?
+                        Do you favor market freedom or government control? This survey explores your views across all critical AI dimensions.
                     </p>
                 </div>
 
                 <div class="dimensions">
                     <div class="dimension">
-                        <strong>X-Axis: Doomer ↔ Boomer</strong>
-                        Will AI lead to doom or boom for humanity?
+                        <strong>Horizontal Axis: Market ↔ Statist</strong>
+                        Should AI be driven by markets and individual choice, or by government oversight and public control?
                     </div>
                     <div class="dimension">
-                        <strong>Y-Axis: Accelerationist ↔ Cautious</strong>
-                        Should we speed up or slow down AI development?
+                        <strong>Vertical Axis: Cautious ↔ Accelerationist</strong>
+                        Should we move carefully and preserve the status quo, or push rapidly toward transformation?
                     </div>
                 </div>
 
-                <div class="personas">
-                    <h3>Example Personas:</h3>
-                    <div class="persona-list">
-                        <span class="persona-tag">😰⚡ Accelerationist Doomer</span>
-                        <span class="persona-tag">🚀 Accelerationist Boomer</span>
-                        <span class="persona-tag">😱 Classic Doomer</span>
-                        <span class="persona-tag">🎉 Optimistic Boomer</span>
-                        <span class="persona-tag">🛡️ Cautious Boomer</span>
-                    </div>
-                </div>
-
-                <a href="ai-attitude-survey.html" class="cta-button">Take Survey →</a>
-            </div>
-
-            <!-- AI Policy Survey -->
-            <div class="survey-card policy" onclick="window.location.href='ai-policy-survey.html'">
-                <div class="survey-header">
-                    <h2 class="survey-title">AI Policy Survey</h2>
-                    <p class="survey-description">
-                        Should AI models be open-source or closed-source? Should AI be a public good or privatized?
-                        Discover your position on how AI should be developed, shared, and controlled.
+                <div style="margin: 25px 0; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                    <p style="font-size: 0.95em; color: #555; margin: 0;">
+                        <strong>18 questions</strong> covering AI safety, development pace, policy approaches, infrastructure,
+                        labor automation, and economic philosophy. Discover your unique perspective and see your position on
+                        the 8-directional AI compass.
                     </p>
                 </div>
 
-                <div class="dimensions">
-                    <div class="dimension">
-                        <strong>X-Axis: Open-Source ↔ Closed-Source</strong>
-                        Should AI models and research be freely shared or kept proprietary?
-                    </div>
-                    <div class="dimension">
-                        <strong>Y-Axis: Public Good ↔ Privatized</strong>
-                        Should AI be government-owned infrastructure or privately controlled?
-                    </div>
-                </div>
-
-                <div class="personas">
-                    <h3>Example Personas:</h3>
-                    <div class="persona-list">
-                        <span class="persona-tag">🏛️ Open Infrastructure Advocate</span>
-                        <span class="persona-tag">🏢 Strategic Privatizer</span>
-                        <span class="persona-tag">🌐 Digital Commons Champion</span>
-                        <span class="persona-tag">🔒 Security-First Controller</span>
-                        <span class="persona-tag">⚖️ Balanced Regulator</span>
-                    </div>
-                </div>
-
-                <a href="ai-policy-survey.html" class="cta-button">Take Survey →</a>
-            </div>
-
-            <!-- AI Global Governance Survey -->
-            <div class="survey-card governance" onclick="window.location.href='ai-global-governance-survey.html'">
-                <div class="survey-header">
-                    <h2 class="survey-title">AI Global Governance Survey</h2>
-                    <p class="survey-description">
-                        Should nations compete or cooperate on AI? Should we prioritize national sovereignty or global coordination?
-                        Find out where you stand on international AI governance and collaboration.
-                    </p>
-                </div>
-
-                <div class="dimensions">
-                    <div class="dimension">
-                        <strong>X-Axis: National Sovereignty ↔ Global Coordination</strong>
-                        Should nations act independently or through international agreements?
-                    </div>
-                    <div class="dimension">
-                        <strong>Y-Axis: Competition ↔ Cooperation</strong>
-                        Is AI development a race to win or a shared challenge?
-                    </div>
-                </div>
-
-                <div class="personas">
-                    <h3>Example Personas:</h3>
-                    <div class="persona-list">
-                        <span class="persona-tag">🏁 National Champion</span>
-                        <span class="persona-tag">🌍 Global Harmonizer</span>
-                        <span class="persona-tag">🤝 Cooperative Nationalist</span>
-                        <span class="persona-tag">🎯 Strategic Competitor</span>
-                        <span class="persona-tag">🕊️ Peace Architect</span>
-                    </div>
-                </div>
-
-                <a href="ai-global-governance-survey.html" class="cta-button">Take Survey →</a>
-            </div>
-
-            <!-- AI Labor & Economics Survey -->
-            <div class="survey-card labor" onclick="window.location.href='ai-labor-economics-survey.html'">
-                <div class="survey-header">
-                    <h2 class="survey-title">AI Labor & Economics Survey</h2>
-                    <p class="survey-description">
-                        As AI automates jobs, should markets adjust naturally or should government intervene?
-                        Should we focus on preserving work or ensuring income? Explore your economic philosophy for the AI age.
-                    </p>
-                </div>
-
-                <div class="dimensions">
-                    <div class="dimension">
-                        <strong>X-Axis: Market Adjustment ↔ Government Intervention</strong>
-                        Let the economy adapt or actively manage the transition?
-                    </div>
-                    <div class="dimension">
-                        <strong>Y-Axis: Income Focus ↔ Work Preservation</strong>
-                        Prioritize financial security or meaningful employment?
-                    </div>
-                </div>
-
-                <div class="personas">
-                    <h3>Example Personas:</h3>
-                    <div class="persona-list">
-                        <span class="persona-tag">📈 Market Optimist</span>
-                        <span class="persona-tag">🏗️ Work Guarantee Advocate</span>
-                        <span class="persona-tag">💰 UBI Libertarian</span>
-                        <span class="persona-tag">🌹 Social Democrat</span>
-                        <span class="persona-tag">⚖️ Balanced Pragmatist</span>
-                    </div>
-                </div>
-
-                <a href="ai-labor-economics-survey.html" class="cta-button">Take Survey →</a>
+                <a href="ai-perspectives-survey.html" class="cta-button">Take Survey →</a>
             </div>
         </div>
 
@@ -413,9 +308,9 @@
                     📊 View Results Dashboard
                 </a>
             </div>
-            <p><strong>About These Surveys</strong></p>
-            <p>Each survey asks 15 questions and maps your responses to a 2D coordinate space, placing you into one of 9 distinct personas.</p>
-            <p>Your responses are weighted to determine your position on two independent dimensions.</p>
+            <p><strong>About This Survey</strong></p>
+            <p>The survey asks 18 questions covering AI safety, policy, and economics. Your responses are mapped to an 8-directional compass, placing you in one of 9 distinct personas (8 directions + center).</p>
+            <p>Your responses are weighted to determine your position on two independent dimensions: Market ↔ Statist and Cautious ↔ Accelerationist.</p>
             <p style="margin-top: 30px; opacity: 0.8;">Built with React • Interactive Results • No Login Required</p>
         </footer>
     </div>
