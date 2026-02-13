@@ -742,8 +742,8 @@
             };
 
             const getArchetype = (x, y) => {
-                // x: negative = open/market, positive = closed/control
-                // y: negative = cautious/preservation, positive = accelerationist/change
+                // x: negative = doomer, positive = boomer
+                // y: negative = cautious, positive = accelerationist
 
                 let name = "";
                 let description = "";
@@ -753,47 +753,47 @@
                 if (Math.abs(x) < 0.4 && y > 0.7) {
                     // North
                     name = "⚡ The Accelerationist";
-                    description = "You believe in moving fast and embracing change. Whether it's AI development, new policies, or economic transformations, you think we should push forward boldly. Progress requires speed and willingness to break from the status quo.";
+                    description = "You believe in moving fast and embracing change. Full speed ahead on AI development. You're neither particularly worried nor wildly optimistic - you just think we need to move quickly. Progress requires boldness and speed.";
                     direction = "N";
                 } else if (x > 0.7 && y > 0.7) {
-                    // Northeast
-                    name = "🏛️⚡ The Progressive Accelerationist";
-                    description = "You want rapid AI advancement but under strong public oversight and control. You believe government should actively steer AI development toward public good while moving quickly. Fast progress through collective action and public investment.";
+                    // Northeast - Boomer Accelerationist
+                    name = "🚀 The e/acc Boomer";
+                    description = "You're extremely optimistic about AI and want to accelerate development as fast as possible. AI will solve humanity's greatest challenges! Why are we waiting? Move fast, innovate boldly, and trust that the benefits will far outweigh any risks. Let's go!";
                     direction = "NE";
                 } else if (x > 0.7 && Math.abs(y) < 0.4) {
-                    // East
-                    name = "🏛️ The Statist";
-                    description = "You believe AI should be publicly controlled, regulated, and directed toward collective benefit. Government oversight, public ownership, and democratic decision-making should guide AI development. Markets alone won't ensure AI serves everyone.";
+                    // East - Boomer
+                    name = "😎 The Classic Boomer";
+                    description = "You're optimistic about AI's potential and think the doomsayers are being dramatic. AI will be fine - probably great! We'll figure things out as we go. No need to panic or slow down. The future is bright and the worriers are overreacting.";
                     direction = "E";
                 } else if (x > 0.7 && y < -0.7) {
-                    // Southeast
-                    name = "🛡️🏛️ The Safety Statist";
-                    description = "You want strong government control over AI combined with a cautious, safety-first approach. Public oversight should ensure we move slowly and carefully, preserving jobs and preventing disruption. Better safe than sorry, with collective decision-making.";
+                    // Southeast - Cautious Boomer
+                    name = "🛡️😎 The Cautious Boomer";
+                    description = "You're optimistic about AI but believe we should proceed carefully. Not convinced AI is an existential threat, but you want thoughtful progress with proper safety measures. Steady wins the race - optimistic but prudent.";
                     direction = "SE";
                 } else if (Math.abs(x) < 0.4 && y < -0.7) {
                     // South
-                    name = "🛡️ The Safety Advocate";
-                    description = "Caution is your watchword. Whether in AI development, policy changes, or economic shifts, you believe we should move slowly and carefully. Preserve what works, protect against disruption, and prioritize safety over speed.";
+                    name = "🛡️ The Safety-First Centrist";
+                    description = "Above all else, you prioritize caution and safety. Whether you're worried about doom or just want careful progress, you believe we should move slowly. Better safe than sorry. Measure twice, cut once.";
                     direction = "S";
                 } else if (x < -0.7 && y < -0.7) {
-                    // Southwest
-                    name = "🛡️💼 The Safety Libertarian";
-                    description = "You believe in free markets and individual liberty, but you're worried about the pace of AI development. Let markets work, but proceed cautiously. You're skeptical of both government control and reckless acceleration.";
+                    // Southwest - Cautious Doomer
+                    name = "😰🛡️ The Cautious Doomer";
+                    description = "You're deeply concerned about AI risks and believe we need to slow down significantly. AI poses serious dangers - alignment problems, loss of control, potential catastrophe. We need strong safeguards, careful progress, and prioritization of safety. Better safe than extinct.";
                     direction = "SW";
                 } else if (x < -0.7 && Math.abs(y) < 0.4) {
-                    // West
-                    name = "💼 The Free Marketeer";
-                    description = "You trust markets, competition, and individual choice over government control. AI should be developed by private companies, accessed by those who pay for it, and guided by market forces. Open-source where possible, private profit where earned.";
+                    // West - Doomer
+                    name = "😰 The Classic Doomer";
+                    description = "You believe AI poses serious existential risks to humanity. You're worried about alignment problems, loss of control, and potential catastrophe. The risks are real, underappreciated, and we're not taking them seriously enough. Wake up, people!";
                     direction = "W";
                 } else if (x < -0.7 && y > 0.7) {
-                    // Northwest
-                    name = "💼⚡ The Libertarian Accelerationist";
-                    description = "You combine free-market principles with rapid innovation. Move fast, break things, let markets decide. Minimal government intervention, maximum entrepreneurial freedom. The best way forward is to unleash innovation without constraints.";
+                    // Northwest - Accelerationist Doomer
+                    name = "😰⚡ The Accelerationist Doomer";
+                    description = "You're worried about AI risks, but you think the real danger is falling behind. Your doom scenario isn't AI itself - it's losing to China or rival powers. We need to accelerate to maintain strategic advantage. The risk of being second is worse than the risk of moving fast.";
                     direction = "NW";
                 } else {
                     // Center
-                    name = "⚖️ The Pragmatic Centrist";
-                    description = "You see merit in multiple perspectives. You want balance between markets and government, between speed and safety, between innovation and preservation. Context matters, and the best approach depends on specific circumstances.";
+                    name = "⚖️ The Balanced Observer";
+                    description = "You see valid points on multiple sides. AI has both promise and peril. You want progress but with appropriate safeguards. Neither pure doomer nor pure boomer, neither recklessly fast nor overly slow. Context matters, nuance is important.";
                     direction = "CENTER";
                 }
 
@@ -822,17 +822,17 @@
                             <div className="dimensions-info">
                                 <h3>Two Key Dimensions</h3>
                                 <div className="dimension-item">
-                                    <strong>Horizontal Axis:</strong> Individual/Market Freedom ↔ Collective/Government Control
+                                    <strong>Horizontal Axis:</strong> Doomer ↔ Boomer
                                     <br />
                                     <span style={{fontSize: '0.95rem', color: '#666'}}>
-                                        Should AI be driven by markets and individual choice, or by government oversight and public control?
+                                        Are you pessimistic about AI's risks and dangers (Doomer), or optimistic about AI's benefits and potential (Boomer)?
                                     </span>
                                 </div>
                                 <div className="dimension-item">
-                                    <strong>Vertical Axis:</strong> Cautious/Preservation ↔ Accelerationist/Change
+                                    <strong>Vertical Axis:</strong> Cautious ↔ Accelerationist
                                     <br />
                                     <span style={{fontSize: '0.95rem', color: '#666'}}>
-                                        Should we move carefully and preserve the status quo, or push rapidly toward transformation?
+                                        Should we move slowly and carefully with strong oversight, or push forward rapidly and embrace change?
                                     </span>
                                 </div>
                             </div>
@@ -877,15 +877,15 @@
                                     ></div>
                                     <div className="compass-label north">Accelerationist</div>
                                     <div className="compass-label south">Cautious</div>
-                                    <div className="compass-label east">Statist</div>
-                                    <div className="compass-label west">Market</div>
+                                    <div className="compass-label east">Boomer</div>
+                                    <div className="compass-label west">Doomer</div>
                                 </div>
                             </div>
 
                             <div className="coordinates">
                                 <h3>Your Coordinates</h3>
                                 <div className="coordinate">
-                                    Horizontal: {results.x.toFixed(2)} (Market {results.x < 0 ? '←' : '→'} Statist)
+                                    Horizontal: {results.x.toFixed(2)} (Doomer {results.x < 0 ? '←' : '→'} Boomer)
                                 </div>
                                 <div className="coordinate">
                                     Vertical: {results.y.toFixed(2)} (Cautious {results.y < 0 ? '↓' : '↑'} Accelerationist)
@@ -903,32 +903,32 @@
                                         Accelerationist
                                     </div>
                                     <div className="persona-item">
-                                        <strong>🏛️⚡ NE</strong>
-                                        Progressive Accelerationist
+                                        <strong>🚀 NE</strong>
+                                        e/acc Boomer
                                     </div>
                                     <div className="persona-item">
-                                        <strong>🏛️ E</strong>
-                                        Statist
+                                        <strong>😎 E</strong>
+                                        Classic Boomer
                                     </div>
                                     <div className="persona-item">
-                                        <strong>🛡️🏛️ SE</strong>
-                                        Safety Statist
+                                        <strong>🛡️😎 SE</strong>
+                                        Cautious Boomer
                                     </div>
                                     <div className="persona-item">
                                         <strong>🛡️ S</strong>
-                                        Safety Advocate
+                                        Safety-First Centrist
                                     </div>
                                     <div className="persona-item">
-                                        <strong>🛡️💼 SW</strong>
-                                        Safety Libertarian
+                                        <strong>😰🛡️ SW</strong>
+                                        Cautious Doomer
                                     </div>
                                     <div className="persona-item">
-                                        <strong>💼 W</strong>
-                                        Free Marketeer
+                                        <strong>😰 W</strong>
+                                        Classic Doomer
                                     </div>
                                     <div className="persona-item">
-                                        <strong>💼⚡ NW</strong>
-                                        Libertarian Accelerationist
+                                        <strong>😰⚡ NW</strong>
+                                        Accelerationist Doomer
                                     </div>
                                 </div>
                             </div>
