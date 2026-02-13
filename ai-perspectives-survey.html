@@ -752,47 +752,47 @@
                 // 8-directional compass
                 if (Math.abs(x) < 0.4 && y > 0.7) {
                     // North
-                    name = "⚡ The Accelerationist";
+                    name = "⚡ Accelerationist";
                     description = "You believe in moving fast and embracing change. Full speed ahead on AI development. You're neither particularly worried nor wildly optimistic - you just think we need to move quickly. Progress requires boldness and speed.";
                     direction = "N";
                 } else if (x > 0.7 && y > 0.7) {
-                    // Northeast - Boomer Accelerationist
-                    name = "🚀 The e/acc Boomer";
+                    // Northeast
+                    name = "🚀 Optimist";
                     description = "You're extremely optimistic about AI and want to accelerate development as fast as possible. AI will solve humanity's greatest challenges! Why are we waiting? Move fast, innovate boldly, and trust that the benefits will far outweigh any risks. Let's go!";
                     direction = "NE";
                 } else if (x > 0.7 && Math.abs(y) < 0.4) {
-                    // East - Boomer
-                    name = "😎 The Classic Boomer";
+                    // East
+                    name = "😎 Boomer";
                     description = "You're optimistic about AI's potential and think the doomsayers are being dramatic. AI will be fine - probably great! We'll figure things out as we go. No need to panic or slow down. The future is bright and the worriers are overreacting.";
                     direction = "E";
                 } else if (x > 0.7 && y < -0.7) {
-                    // Southeast - Cautious Boomer
-                    name = "🛡️😎 The Cautious Boomer";
+                    // Southeast
+                    name = "🛡️ Pragmatist";
                     description = "You're optimistic about AI but believe we should proceed carefully. Not convinced AI is an existential threat, but you want thoughtful progress with proper safety measures. Steady wins the race - optimistic but prudent.";
                     direction = "SE";
                 } else if (Math.abs(x) < 0.4 && y < -0.7) {
                     // South
-                    name = "🛡️ The Safety-First Centrist";
+                    name = "🛡️ Cautious";
                     description = "Above all else, you prioritize caution and safety. Whether you're worried about doom or just want careful progress, you believe we should move slowly. Better safe than sorry. Measure twice, cut once.";
                     direction = "S";
                 } else if (x < -0.7 && y < -0.7) {
-                    // Southwest - Cautious Doomer
-                    name = "😰🛡️ The Cautious Doomer";
+                    // Southwest
+                    name = "😰 Pessimist";
                     description = "You're deeply concerned about AI risks and believe we need to slow down significantly. AI poses serious dangers - alignment problems, loss of control, potential catastrophe. We need strong safeguards, careful progress, and prioritization of safety. Better safe than extinct.";
                     direction = "SW";
                 } else if (x < -0.7 && Math.abs(y) < 0.4) {
-                    // West - Doomer
-                    name = "😰 The Classic Doomer";
+                    // West
+                    name = "😰 Doomer";
                     description = "You believe AI poses serious existential risks to humanity. You're worried about alignment problems, loss of control, and potential catastrophe. The risks are real, underappreciated, and we're not taking them seriously enough. Wake up, people!";
                     direction = "W";
                 } else if (x < -0.7 && y > 0.7) {
-                    // Northwest - Accelerationist Doomer
-                    name = "😰⚡ The Accelerationist Doomer";
+                    // Northwest
+                    name = "😰⚡ Racer";
                     description = "You're worried about AI risks, but you think the real danger is falling behind. Your doom scenario isn't AI itself - it's losing to China or rival powers. We need to accelerate to maintain strategic advantage. The risk of being second is worse than the risk of moving fast.";
                     direction = "NW";
                 } else {
                     // Center
-                    name = "⚖️ The Balanced Observer";
+                    name = "⚖️ Centrist";
                     description = "You see valid points on multiple sides. AI has both promise and peril. You want progress but with appropriate safeguards. Neither pure doomer nor pure boomer, neither recklessly fast nor overly slow. Context matters, nuance is important.";
                     direction = "CENTER";
                 }
@@ -904,31 +904,31 @@
                                     </div>
                                     <div className="persona-item">
                                         <strong>🚀 NE</strong>
-                                        e/acc Boomer
+                                        Optimist
                                     </div>
                                     <div className="persona-item">
                                         <strong>😎 E</strong>
-                                        Classic Boomer
+                                        Boomer
                                     </div>
                                     <div className="persona-item">
-                                        <strong>🛡️😎 SE</strong>
-                                        Cautious Boomer
+                                        <strong>🛡️ SE</strong>
+                                        Pragmatist
                                     </div>
                                     <div className="persona-item">
                                         <strong>🛡️ S</strong>
-                                        Safety-First Centrist
+                                        Cautious
                                     </div>
                                     <div className="persona-item">
-                                        <strong>😰🛡️ SW</strong>
-                                        Cautious Doomer
+                                        <strong>😰 SW</strong>
+                                        Pessimist
                                     </div>
                                     <div className="persona-item">
                                         <strong>😰 W</strong>
-                                        Classic Doomer
+                                        Doomer
                                     </div>
                                     <div className="persona-item">
                                         <strong>😰⚡ NW</strong>
-                                        Accelerationist Doomer
+                                        Racer
                                     </div>
                                 </div>
                             </div>
