@@ -750,12 +750,16 @@
             };
 
             const goToNext = () => {
+                console.log('goToNext called, currentQuestion:', currentQuestion, 'total:', questions.length);
                 if (currentQuestion < questions.length - 1) {
                     setCurrentQuestion(currentQuestion + 1);
                 } else {
+                    console.log('Last question reached, calculating results...');
                     // Calculate results
                     const results = calculateResults();
+                    console.log('Results calculated:', results);
                     const archetype = getArchetype(results.x, results.y);
+                    console.log('Archetype:', archetype);
 
                     // Save to Firebase (don't wait)
                     saveToFirebase({
@@ -774,6 +778,7 @@
                         .get()
                         .then(snapshot => {
                             const allData = snapshot.docs.map(doc => doc.data());
+                            console.log('Fetched all results:', allData.length);
                             setAllResults(allData);
                         })
                         .catch(error => {
@@ -782,6 +787,7 @@
                         });
 
                     // Show results immediately
+                    console.log('Setting showResults to true');
                     setShowResults(true);
                 }
             };
