@@ -322,8 +322,8 @@
 
         .compass-label.north { top: -30px; left: 50%; transform: translateX(-50%); }
         .compass-label.south { bottom: -30px; left: 50%; transform: translateX(-50%); }
-        .compass-label.east { right: -50px; top: 50%; transform: translateY(-50%); }
-        .compass-label.west { left: -50px; top: 50%; transform: translateY(-50%); }
+        .compass-label.east { right: -70px; top: 50%; transform: translateY(-50%); }
+        .compass-label.west { left: -70px; top: 50%; transform: translateY(-50%); }
 
         .action-buttons {
             display: flex;
@@ -384,12 +384,77 @@
             border-radius: 10px;
             font-size: 0.9rem;
             backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .persona-item:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
         }
 
         .persona-item strong {
             display: block;
             margin-bottom: 5px;
             font-size: 1.1rem;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+            padding: 5px 10px;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-title {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .modal-description {
+            font-size: 1.1rem;
+            color: #555;
+            line-height: 1.8;
         }
 
         @keyframes fadeIn {
@@ -674,6 +739,8 @@
             const [currentQuestion, setCurrentQuestion] = useState(0);
             const [answers, setAnswers] = useState({});
             const [showResults, setShowResults] = useState(false);
+            const [selectedPersona, setSelectedPersona] = useState(null);
+            const [allResults, setAllResults] = useState([]);
 
             const handleAnswer = (questionId, optionIndex) => {
                 setAnswers({
@@ -682,7 +749,7 @@
                 });
             };
 
-            const goToNext = () => {
+            const goToNext = async () => {
                 if (currentQuestion < questions.length - 1) {
                     setCurrentQuestion(currentQuestion + 1);
                 } else {
@@ -690,7 +757,7 @@
                     const results = calculateResults();
                     const archetype = getArchetype(results.x, results.y);
 
-                    saveToFirebase({
+                    await saveToFirebase({
                         x: results.x,
                         y: results.y,
                         archetype: archetype.name,
@@ -698,6 +765,15 @@
                         totalQuestions: questions.length,
                         questionsAnswered: Object.keys(answers).length
                     });
+
+                    // Fetch all results from Firebase
+                    try {
+                        const snapshot = await db.collection('ai_perspectives_survey').get();
+                        const results = snapshot.docs.map(doc => doc.data());
+                        setAllResults(results);
+                    } catch (error) {
+                        console.error('Error fetching results:', error);
+                    }
 
                     setShowResults(true);
                 }
@@ -739,6 +815,51 @@
                 const yAvg = count > 0 ? yTotal / count : 0;
 
                 return { x: xAvg, y: yAvg };
+            };
+
+            const getAllPersonas = () => {
+                return [
+                    {
+                        name: "⚡ Accelerationist",
+                        direction: "N",
+                        description: "You believe in moving fast and embracing change. Full speed ahead on AI development. You're neither particularly worried nor wildly optimistic - you just think we need to move quickly. Progress requires boldness and speed."
+                    },
+                    {
+                        name: "🚀 e/acc",
+                        direction: "NE",
+                        description: "Effective accelerationist! You're extremely optimistic about AI and want to accelerate development as fast as possible. AI will solve humanity's greatest challenges! Why are we waiting? Move fast, innovate boldly, and trust that the benefits will far outweigh any risks. Let's go!"
+                    },
+                    {
+                        name: "😎 Boomer",
+                        direction: "E",
+                        description: "You're optimistic about AI's potential and think the doomsayers are being dramatic. AI will be fine - probably great! We'll figure things out as we go. No need to panic or slow down. The future is bright and the worriers are overreacting."
+                    },
+                    {
+                        name: "🛠️ Builder",
+                        direction: "SE",
+                        description: "You're optimistic about AI but believe we should proceed carefully. Build responsibly, test thoroughly, ship thoughtfully. Not convinced AI is an existential threat, but you want proper engineering practices and safety measures. Steady wins the race - optimistic but prudent."
+                    },
+                    {
+                        name: "🎯 Connor",
+                        direction: "S",
+                        description: "Like Sarah Connor fighting to prevent Skynet, you believe we need to actively resist dangerous AI development. The future isn't set - we can still change course. You want to slow down, implement safeguards, and prevent the bad timeline. No fate but what we make."
+                    },
+                    {
+                        name: "📎 Paperclip",
+                        direction: "SW",
+                        description: "You're deeply concerned about AI alignment and misaligned goals. Like the paperclip maximizer thought experiment, you worry about AI systems pursuing objectives in unintended ways with catastrophic consequences. We need to solve alignment before it's too late. Better safe than extinct."
+                    },
+                    {
+                        name: "😰 Doomer",
+                        direction: "W",
+                        description: "You believe AI poses serious existential risks to humanity. You're worried about alignment problems, loss of control, and potential catastrophe. The risks are real, underappreciated, and we're not taking them seriously enough. Wake up, people!"
+                    },
+                    {
+                        name: "🕴️ Bond",
+                        direction: "NW",
+                        description: "Like James Bond protecting national interests, you're worried about AI risks but believe the real danger is losing to adversaries. Your mission: maintain strategic advantage in the global AI race. The stakes are too high to slow down - we must win this competition for national security."
+                    }
+                ];
             };
 
             const getArchetype = (x, y) => {
@@ -864,10 +985,42 @@
                             <div className="archetype-name">{archetype.name}</div>
                             <p className="archetype-description">{archetype.description}</p>
 
+                            {allResults.length > 0 && (
+                                <p style={{textAlign: 'center', color: '#666', marginBottom: '10px', fontSize: '0.9rem'}}>
+                                    Showing {allResults.length} responses (yours is the bright dot)
+                                </p>
+                            )}
                             <div className="compass-container">
                                 <div className="compass-diagram">
                                     <div className="compass-line-h"></div>
                                     <div className="compass-line-v"></div>
+
+                                    {/* Other users' results as faint dots */}
+                                    {allResults.map((result, index) => {
+                                        if (result.x !== undefined && result.y !== undefined) {
+                                            const otherX = ((result.x + 2) / 4) * 100;
+                                            const otherY = ((2 - result.y) / 4) * 100;
+                                            return (
+                                                <div
+                                                    key={index}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        width: '8px',
+                                                        height: '8px',
+                                                        background: 'rgba(118, 75, 162, 0.15)',
+                                                        borderRadius: '50%',
+                                                        left: `${otherX}%`,
+                                                        top: `${otherY}%`,
+                                                        transform: 'translate(-50%, -50%)',
+                                                        zIndex: 1
+                                                    }}
+                                                ></div>
+                                            );
+                                        }
+                                        return null;
+                                    })}
+
+                                    {/* User's result as prominent dot */}
                                     <div
                                         className="compass-dot"
                                         style={{
@@ -875,6 +1028,7 @@
                                             top: `${dotY}%`
                                         }}
                                     ></div>
+
                                     <div className="compass-label north">Accelerationist</div>
                                     <div className="compass-label south">Cautious</div>
                                     <div className="compass-label east">Boomer</div>
@@ -898,38 +1052,16 @@
                                     Now that you've completed the survey, here are all possible perspectives:
                                 </p>
                                 <div className="persona-grid">
-                                    <div className="persona-item">
-                                        <strong>⚡ N</strong>
-                                        Accelerationist
-                                    </div>
-                                    <div className="persona-item">
-                                        <strong>🚀 NE</strong>
-                                        e/acc
-                                    </div>
-                                    <div className="persona-item">
-                                        <strong>😎 E</strong>
-                                        Boomer
-                                    </div>
-                                    <div className="persona-item">
-                                        <strong>🛠️ SE</strong>
-                                        Builder
-                                    </div>
-                                    <div className="persona-item">
-                                        <strong>🎯 S</strong>
-                                        Connor
-                                    </div>
-                                    <div className="persona-item">
-                                        <strong>📎 SW</strong>
-                                        Paperclip
-                                    </div>
-                                    <div className="persona-item">
-                                        <strong>😰 W</strong>
-                                        Doomer
-                                    </div>
-                                    <div className="persona-item">
-                                        <strong>🕴️ NW</strong>
-                                        Bond
-                                    </div>
+                                    {getAllPersonas().map((persona, index) => (
+                                        <div
+                                            key={index}
+                                            className="persona-item"
+                                            onClick={() => setSelectedPersona(persona)}
+                                        >
+                                            <strong>{persona.name.split(' ')[0]} {persona.direction}</strong>
+                                            {persona.name.split(' ').slice(1).join(' ')}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
 
@@ -941,6 +1073,16 @@
                                     Back to Home
                                 </button>
                             </div>
+
+                            {selectedPersona && (
+                                <div className="modal-overlay" onClick={() => setSelectedPersona(null)}>
+                                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                        <button className="modal-close" onClick={() => setSelectedPersona(null)}>×</button>
+                                        <h2 className="modal-title">{selectedPersona.name}</h2>
+                                        <p className="modal-description">{selectedPersona.description}</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 );
