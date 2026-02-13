@@ -749,32 +749,39 @@
                 });
             };
 
-            const goToNext = async () => {
+            const goToNext = () => {
                 if (currentQuestion < questions.length - 1) {
                     setCurrentQuestion(currentQuestion + 1);
                 } else {
-                    // Calculate results and save to Firebase
+                    // Calculate results
                     const results = calculateResults();
                     const archetype = getArchetype(results.x, results.y);
 
-                    await saveToFirebase({
+                    // Save to Firebase (don't wait)
+                    saveToFirebase({
                         x: results.x,
                         y: results.y,
                         archetype: archetype.name,
                         answers: answers,
                         totalQuestions: questions.length,
                         questionsAnswered: Object.keys(answers).length
+                    }).catch(error => {
+                        console.error('Error saving to Firebase:', error);
                     });
 
-                    // Fetch all results from Firebase
-                    try {
-                        const snapshot = await db.collection('ai_perspectives_survey').get();
-                        const results = snapshot.docs.map(doc => doc.data());
-                        setAllResults(results);
-                    } catch (error) {
-                        console.error('Error fetching results:', error);
-                    }
+                    // Fetch all results from Firebase (don't block on this)
+                    db.collection('ai_perspectives_survey')
+                        .get()
+                        .then(snapshot => {
+                            const allData = snapshot.docs.map(doc => doc.data());
+                            setAllResults(allData);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching results:', error);
+                            setAllResults([]);
+                        });
 
+                    // Show results immediately
                     setShowResults(true);
                 }
             };
