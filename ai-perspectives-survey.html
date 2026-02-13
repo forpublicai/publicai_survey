@@ -741,6 +741,7 @@
             const [showResults, setShowResults] = useState(false);
             const [selectedPersona, setSelectedPersona] = useState(null);
             const [allResults, setAllResults] = useState([]);
+            const [myResults, setMyResults] = useState(null);
 
             const handleAnswer = (questionId, optionIndex) => {
                 setAnswers({
@@ -760,6 +761,9 @@
                     console.log('Results calculated:', results);
                     const archetype = getArchetype(results.x, results.y);
                     console.log('Archetype:', archetype);
+
+                    // Store results in state
+                    setMyResults({ results, archetype });
 
                     // Save to Firebase (don't wait)
                     saveToFirebase({
@@ -979,9 +983,8 @@
                 );
             }
 
-            if (showResults) {
-                const results = calculateResults();
-                const archetype = getArchetype(results.x, results.y);
+            if (showResults && myResults) {
+                const { results, archetype } = myResults;
 
                 // Convert coordinates to percentages for positioning (0,0 center = 50%,50%)
                 const dotX = ((results.x + 2) / 4) * 100; // Map -2 to 2 onto 0 to 100
