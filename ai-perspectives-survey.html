@@ -502,7 +502,7 @@
 
         // Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyBEiz3xCZDdI83vJwdH1OJC7Gr_ACrpzZM",
+            apiKey: "AIzaSyBwa2yNYji98oKxCEF9LiIUfiAfFJkvET8",
             authDomain: "publicaisurvey.firebaseapp.com",
             projectId: "publicaisurvey",
             storageBucket: "publicaisurvey.firebasestorage.app",
@@ -828,112 +828,73 @@
                     count++;
                 });
 
-                // Scale by 2.0 to spread responses toward edges
-                const xAvg = count > 0 ? (xTotal / count) * 2.0 : 0;
-                const yAvg = count > 0 ? (yTotal / count) * 2.0 : 0;
+                const xAvg = count > 0 ? (xTotal / count) : 0;
+                const yAvg = count > 0 ? (yTotal / count) : 0;
 
-                return { x: xAvg, y: yAvg };
+                // Clamp to [-1, 1] range so edges of circle = max score
+                const clamp = (v) => Math.max(-1, Math.min(1, v));
+                return { x: clamp(xAvg), y: clamp(yAvg) };
             };
 
             const getAllPersonas = () => {
                 return [
                     {
-                        name: "⚡ Accelerationist",
-                        direction: "N",
-                        description: "You believe in moving fast and embracing change. Full speed ahead on AI development. You're neither particularly worried nor wildly optimistic - you just think we need to move quickly. Progress requires boldness and speed."
-                    },
-                    {
-                        name: "🚀 e/acc",
+                        name: "🚀 Zoomer",
                         direction: "NE",
-                        description: "Effective accelerationist! You're extremely optimistic about AI and want to accelerate development as fast as possible. AI will solve humanity's greatest challenges! Why are we waiting? Move fast, innovate boldly, and trust that the benefits will far outweigh any risks. Let's go!"
+                        description: "Excited about AI and want to hit the gas pedal, full speed ahead! The future is bright, the tech is incredible, and anyone pumping the brakes is just slowing down the golden age."
                     },
                     {
-                        name: "😎 Boomer",
-                        direction: "E",
-                        description: "You're optimistic about AI's potential and think the doomsayers are being dramatic. AI will be fine - probably great! We'll figure things out as we go. No need to panic or slow down. The future is bright and the worriers are overreacting."
-                    },
-                    {
-                        name: "🛠️ Builder",
+                        name: "🌸 Bloomer",
                         direction: "SE",
-                        description: "You're optimistic about AI but believe we should proceed carefully. Build responsibly, test thoroughly, ship thoughtfully. Not convinced AI is an existential threat, but you want proper engineering practices and safety measures. Steady wins the race - optimistic but prudent."
-                    },
-                    {
-                        name: "🎯 Connor",
-                        direction: "S",
-                        description: "Like Sarah Connor fighting to prevent Skynet, you believe we need to actively resist dangerous AI development. The future isn't set - we can still change course. You want to slow down, implement safeguards, and prevent the bad timeline. No fate but what we make."
-                    },
-                    {
-                        name: "📎 Paperclip",
-                        direction: "SW",
-                        description: "You're deeply concerned about AI alignment and misaligned goals. Like the paperclip maximizer thought experiment, you worry about AI systems pursuing objectives in unintended ways with catastrophic consequences. We need to solve alignment before it's too late. Better safe than extinct."
+                        description: "Cautiously optimistic — driving forward while tapping the brakes. AI can change society for the better, like the printing press and the internet before it. Let's be smart about it."
                     },
                     {
                         name: "😰 Doomer",
-                        direction: "W",
-                        description: "You believe AI poses serious existential risks to humanity. You're worried about alignment problems, loss of control, and potential catastrophe. The risks are real, underappreciated, and we're not taking them seriously enough. Wake up, people!"
+                        direction: "SW",
+                        description: "AI is an existential threat that should be stopped. The risks are real, underappreciated, and we're not taking them seriously enough."
                     },
                     {
-                        name: "🕴️ Bond",
+                        name: "😔 Gloomer",
                         direction: "NW",
-                        description: "Like James Bond protecting national interests, you're worried about AI risks but believe the real danger is losing to adversaries. Your mission: maintain strategic advantage in the global AI race. The stakes are too high to slow down - we must win this competition for national security."
+                        description: "AI is an inevitable march toward job loss and human displacement. It's coming whether we like it or not. Someone should be building lifeboats."
                     }
                 ];
             };
 
             const getArchetype = (x, y) => {
-                // x: negative = doomer, positive = boomer
-                // y: negative = cautious, positive = accelerationist
+                // x: negative = pessimistic, positive = optimistic
+                // y: positive = accelerate, negative = cautious/resigned
+                // Quadrants: NE=Zoomer, SE=Bloomer, SW=Doomer, NW=Gloomer
 
                 let name = "";
                 let description = "";
                 let direction = "";
 
-                // 8-directional compass
-                if (Math.abs(x) < 0.4 && y > 0.7) {
-                    // North
-                    name = "⚡ Accelerationist";
-                    description = "You believe in moving fast and embracing change. Full speed ahead on AI development. You're neither particularly worried nor wildly optimistic - you just think we need to move quickly. Progress requires boldness and speed.";
-                    direction = "N";
-                } else if (x > 0.7 && y > 0.7) {
-                    // Northeast
-                    name = "🚀 e/acc";
-                    description = "Effective accelerationist! You're extremely optimistic about AI and want to accelerate development as fast as possible. AI will solve humanity's greatest challenges! Why are we waiting? Move fast, innovate boldly, and trust that the benefits will far outweigh any risks. Let's go!";
-                    direction = "NE";
-                } else if (x > 0.7 && Math.abs(y) < 0.4) {
-                    // East
-                    name = "😎 Boomer";
-                    description = "You're optimistic about AI's potential and think the doomsayers are being dramatic. AI will be fine - probably great! We'll figure things out as we go. No need to panic or slow down. The future is bright and the worriers are overreacting.";
-                    direction = "E";
-                } else if (x > 0.7 && y < -0.7) {
-                    // Southeast
-                    name = "🛠️ Builder";
-                    description = "You're optimistic about AI but believe we should proceed carefully. Build responsibly, test thoroughly, ship thoughtfully. Not convinced AI is an existential threat, but you want proper engineering practices and safety measures. Steady wins the race - optimistic but prudent.";
-                    direction = "SE";
-                } else if (Math.abs(x) < 0.4 && y < -0.7) {
-                    // South
-                    name = "🎯 Connor";
-                    description = "Like Sarah Connor fighting to prevent Skynet, you believe we need to actively resist dangerous AI development. The future isn't set - we can still change course. You want to slow down, implement safeguards, and prevent the bad timeline. No fate but what we make.";
-                    direction = "S";
-                } else if (x < -0.7 && y < -0.7) {
-                    // Southwest
-                    name = "📎 Paperclip";
-                    description = "You're deeply concerned about AI alignment and misaligned goals. Like the paperclip maximizer thought experiment, you worry about AI systems pursuing objectives in unintended ways with catastrophic consequences. We need to solve alignment before it's too late. Better safe than extinct.";
-                    direction = "SW";
-                } else if (x < -0.7 && Math.abs(y) < 0.4) {
-                    // West
-                    name = "😰 Doomer";
-                    description = "You believe AI poses serious existential risks to humanity. You're worried about alignment problems, loss of control, and potential catastrophe. The risks are real, underappreciated, and we're not taking them seriously enough. Wake up, people!";
-                    direction = "W";
-                } else if (x < -0.7 && y > 0.7) {
-                    // Northwest
-                    name = "🕴️ Bond";
-                    description = "Like James Bond protecting national interests, you're worried about AI risks but believe the real danger is losing to adversaries. Your mission: maintain strategic advantage in the global AI race. The stakes are too high to slow down - we must win this competition for national security.";
-                    direction = "NW";
-                } else {
+                if (Math.abs(x) < 0.3 && Math.abs(y) < 0.3) {
                     // Center
                     name = "🖖 Spock";
-                    description = "You approach AI with logic and balance. Like Spock, you see both the fascinating possibilities and the logical risks. You want progress but with appropriate safeguards. Neither pure doomer nor pure boomer, neither recklessly fast nor overly slow. The needs of the many, considered carefully.";
+                    description = "You approach AI with logic and balance. Like Spock, you see both the fascinating possibilities and the logical risks. Neither doomer nor bloomer, neither gloomer nor zoomer. You want progress but with appropriate safeguards. The needs of the many, considered carefully.";
                     direction = "CENTER";
+                } else if (x >= 0 && y >= 0) {
+                    // NE quadrant: Zoomer
+                    name = "🚀 Zoomer";
+                    description = "You're optimistic about AI and want development to move fast. The potential is enormous, the risks are manageable, and the bigger danger is falling behind.";
+                    direction = "NE";
+                } else if (x >= 0 && y < 0) {
+                    // SE quadrant: Bloomer
+                    name = "🌸 Bloomer";
+                    description = "You believe AI can change society for the better, but you want to get there carefully. Understand the risks, navigate them intelligently, and keep moving forward.";
+                    direction = "SE";
+                } else if (x < 0 && y < 0) {
+                    // SW quadrant: Doomer
+                    name = "😰 Doomer";
+                    description = "You believe AI poses a serious existential risk and that development should be slowed or stopped. The technology is advancing faster than our ability to control it.";
+                    direction = "SW";
+                } else {
+                    // NW quadrant: Gloomer
+                    name = "😔 Gloomer";
+                    description = "You see AI as an inevitable march toward job loss and human displacement. The technology isn't going away, but the disruption will fall hardest on those least equipped to adapt.";
+                    direction = "NW";
                 }
 
                 return { name, description, direction };
@@ -955,23 +916,23 @@
                             <p className="intro-description">
                                 This survey explores your views on AI development, policy, and economic impact.
                                 Answer 18 questions to discover your unique perspective and see where you fall
-                                on the AI compass - from accelerationist to cautious, from free-market to statist.
+                                on the AI compass — are you a doomer, gloomer, zoomer, or bloomer?
                             </p>
 
                             <div className="dimensions-info">
                                 <h3>Two Key Dimensions</h3>
                                 <div className="dimension-item">
-                                    <strong>Horizontal Axis:</strong> Doomer ↔ Boomer
+                                    <strong>Horizontal Axis:</strong> Pessimistic ↔ Optimistic
                                     <br />
                                     <span style={{fontSize: '0.95rem', color: '#666'}}>
-                                        Are you pessimistic about AI's risks and dangers (Doomer), or optimistic about AI's benefits and potential (Boomer)?
+                                        Do you see AI as a threat or as an opportunity?
                                     </span>
                                 </div>
                                 <div className="dimension-item">
-                                    <strong>Vertical Axis:</strong> Cautious ↔ Accelerationist
+                                    <strong>Vertical Axis:</strong> Cautious ↔ Accelerate
                                     <br />
                                     <span style={{fontSize: '0.95rem', color: '#666'}}>
-                                        Should we move slowly and carefully with strong oversight, or push forward rapidly and embrace change?
+                                        Should we pump the brakes or hit the gas?
                                     </span>
                                 </div>
                             </div>
@@ -988,8 +949,8 @@
                 const { results, archetype } = myResults;
 
                 // Convert coordinates to percentages for positioning (0,0 center = 50%,50%)
-                const dotX = ((results.x + 2) / 4) * 100; // Map -2 to 2 onto 0 to 100
-                const dotY = ((2 - results.y) / 4) * 100; // Invert Y (top is positive)
+                const dotX = ((results.x + 1) / 2) * 100; // Map -1 to 1 onto 0 to 100
+                const dotY = ((1 - results.y) / 2) * 100; // Invert Y (top is positive)
 
                 return (
                     <div className="survey-container">
@@ -1019,8 +980,9 @@
                                             const isSameAsUser = Math.abs(result.x - results.x) < 0.01 && Math.abs(result.y - results.y) < 0.01;
                                             if (isSameAsUser) return null;
 
-                                            const otherX = ((result.x + 2) / 4) * 100;
-                                            const otherY = ((2 - result.y) / 4) * 100;
+                                            const clampVal = (v) => Math.max(-1, Math.min(1, v));
+                                            const otherX = ((clampVal(result.x) + 1) / 2) * 100;
+                                            const otherY = ((1 - clampVal(result.y)) / 2) * 100;
                                             return (
                                                 <div
                                                     key={index}
@@ -1050,20 +1012,20 @@
                                         }}
                                     ></div>
 
-                                    <div className="compass-label north">Accelerationist</div>
-                                    <div className="compass-label south">Cautious</div>
-                                    <div className="compass-label east">Boomer</div>
-                                    <div className="compass-label west">Doomer</div>
+                                    <div className="compass-label" style={{top: '-28px', right: '-50px'}}>🚀 Zoomer</div>
+                                    <div className="compass-label" style={{bottom: '-28px', right: '-50px'}}>🌸 Bloomer</div>
+                                    <div className="compass-label" style={{bottom: '-28px', left: '-50px'}}>😰 Doomer</div>
+                                    <div className="compass-label" style={{top: '-28px', left: '-55px'}}>😔 Gloomer</div>
                                 </div>
                             </div>
 
                             <div className="coordinates">
                                 <h3>Your Coordinates</h3>
                                 <div className="coordinate">
-                                    Horizontal: {results.x.toFixed(2)} (Doomer {results.x < 0 ? '←' : '→'} Boomer)
+                                    Horizontal: {results.x.toFixed(2)} (Pessimistic {results.x < 0 ? '←' : '→'} Optimistic)
                                 </div>
                                 <div className="coordinate">
-                                    Vertical: {results.y.toFixed(2)} (Cautious {results.y < 0 ? '↓' : '↑'} Accelerationist)
+                                    Vertical: {results.y.toFixed(2)} (Cautious {results.y < 0 ? '↓' : '↑'} Accelerate)
                                 </div>
                             </div>
 
